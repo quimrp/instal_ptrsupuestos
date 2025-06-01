@@ -1,0 +1,123 @@
+{
+  "ventana": {
+    "nombre": "Ventana",
+    "caracteristicas": {
+      "marca": {
+        "label": "Marca",
+        "tipo": "select",
+        "opciones": ["Cortizo", "Technal", "Schüco", "Reynaers", "Exlabesa"]
+      },
+      "perfileria": {
+        "label": "Perfilería",
+        "tipo": "select",
+        "opciones": ["RPT", "Sin RPT", "Mixta"]
+      },
+      "serie": {
+        "label": "Serie",
+        "tipo": "select",
+        "opciones": ["Serie 60", "Serie 70", "Serie 80", "Serie 90"]
+      },
+      "color": {
+        "label": "Color",
+        "tipo": "select",
+        "opciones": ["Blanco", "Negro", "Gris Antracita", "Madera Natural", "Madera Nogal", "Plata Mate"]
+      },
+      "persiana": {
+        "label": "Persiana",
+        "tipo": "select",
+        "opciones": ["Sin persiana", "Persiana PVC", "Persiana Aluminio", "Persiana Motorizada"]
+      },
+      "ancho": {
+        "label": "Ancho (mm)",
+        "tipo": "number",
+        "min": 300,
+        "max": 3000
+      },
+      "alto": {
+        "label": "Alto (mm)", 
+        "tipo": "number",
+        "min": 300,
+        "max": 2500
+      },
+      "apertura": {
+        "label": "Tipo de apertura",
+        "tipo": "select",
+        "opciones": ["Practicable", "Oscilobatiente", "Corredera", "Abatible", "Fija"]
+      }
+    }
+  },
+  "mampara": {
+    "nombre": "Mampara",
+    "caracteristicas": {
+      "tipo": {
+        "label": "Tipo de mampara",
+        "tipo": "select",
+        "opciones": ["Frontal", "Angular", "Semicircular", "Walk-in"]
+      },
+      "cristal": {
+        "label": "Tipo de cristal",
+        "tipo": "select",
+        "opciones": ["Transparente", "Serigrafiado", "Mate", "Fumé"]
+      },
+      "espesor": {
+        "label": "Espesor cristal",
+        "tipo": "select",
+        "opciones": ["6mm", "8mm", "10mm"]
+      },
+      "perfileria": {
+        "label": "Perfilería",
+        "tipo": "select",
+        "opciones": ["Cromo", "Negro mate", "Blanco", "Oro"]
+      },
+      "ancho": {
+        "label": "Ancho (mm)",
+        "tipo": "number",
+        "min": 600,
+        "max": 2000
+      },
+      "alto": {
+        "label": "Alto (mm)",
+        "tipo": "number",
+        "min": 1800,
+        "max": 2200
+      }
+    }
+  },
+  "puerta": {
+    "nombre": "Puerta",
+    "caracteristicas": {
+      "material": {
+        "label": "Material",
+        "tipo": "select",
+        "opciones": ["Madera maciza", "MDF lacado", "Aluminio", "PVC", "Cristal"]
+      },
+      "tipo": {
+        "label": "Tipo de puerta",
+        "tipo": "select",
+        "opciones": ["Abatible", "Corredera", "Plegable", "Pivotante"]
+      },
+      "acabado": {
+        "label": "Acabado",
+        "tipo": "select",
+        "opciones": ["Lacado blanco", "Lacado color", "Barnizado", "Natural", "Texturizado"]
+      },
+      "manilla": {
+        "label": "Tipo de manilla",
+        "tipo": "select",
+        "opciones": ["Roseta", "Placa", "Tirador", "Manillón"]
+      },
+      "ancho": {
+        "label": "Ancho (mm)",
+        "tipo": "number",
+        "min": 600,
+        "max": 1200
+      },
+      "alto": {
+        "label": "Alto (mm)",
+        "tipo": "number",
+        "min": 1900,
+        "max": 2400
+      }
+    }
+  }
+} 

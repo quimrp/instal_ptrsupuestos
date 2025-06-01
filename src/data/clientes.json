@@ -1,0 +1,84 @@
+{
+  "clientes": [
+    {
+      "id": "1",
+      "nombre": "Juan",
+      "apellidos": "García López",
+      "nif": "12345678A",
+      "direccion": "Calle Mayor 123, 28001 Madrid",
+      "telefono": "666123456",
+      "email": "juan.garcia@email.com",
+      "tipoCliente": "particular"
+    },
+    {
+      "id": "2",
+      "nombre": "María",
+      "apellidos": "Martínez Sánchez",
+      "nif": "87654321B",
+      "direccion": "Avenida Constitución 45, 08002 Barcelona",
+      "telefono": "677234567",
+      "email": "maria.martinez@email.com",
+      "tipoCliente": "particular"
+    },
+    {
+      "id": "3",
+      "nombre": "Construcciones ABC S.L.",
+      "apellidos": "",
+      "nif": "B12345678",
+      "direccion": "Polígono Industrial Norte, Nave 12, 46001 Valencia",
+      "telefono": "961234567",
+      "email": "info@construccionesabc.com",
+      "tipoCliente": "empresa"
+    },
+    {
+      "id": "4",
+      "nombre": "Pedro",
+      "apellidos": "Rodríguez Fernández",
+      "nif": "11223344C",
+      "direccion": "Plaza España 7, 41001 Sevilla",
+      "telefono": "654345678",
+      "email": "pedro.rodriguez@email.com",
+      "tipoCliente": "particular"
+    },
+    {
+      "id": "5",
+      "nombre": "Reformas del Sur S.L.",
+      "apellidos": "",
+      "nif": "B87654321",
+      "direccion": "Calle Industria 89, 29001 Málaga",
+      "telefono": "952345678",
+      "email": "contacto@reformasdelsur.es",
+      "tipoCliente": "empresa"
+    },
+    {
+      "id": "6",
+      "nombre": "Ana",
+      "apellidos": "López Jiménez",
+      "nif": "99887766D",
+      "direccion": "Rambla Catalunya 234, 08008 Barcelona",
+      "telefono": "633456789",
+      "email": "ana.lopez@email.com",
+      "tipoCliente": "particular"
+    },
+    {
+      "id": "7",
+      "nombre": "Carlos",
+      "apellidos": "Pérez Martín",
+      "nif": "55443322E",
+      "direccion": "Gran Vía 567, 28013 Madrid",
+      "telefono": "644567890",
+      "email": "carlos.perez@email.com",
+      "tipoCliente": "particular"
+    },
+    {
+      "id": "8",
+      "nombre": "Inmobiliaria Costa Dorada S.A.",
+      "apellidos": "",
+      "nif": "A11223344",
+      "direccion": "Paseo Marítimo 100, 43001 Tarragona",
+      "telefono": "977123456",
+      "email": "info@costadorada.com",
+      "tipoCliente": "empresa"
+    }
+  ]
+} 

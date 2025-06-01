@@ -1,0 +1,279 @@
+{
+  "presupuestos": [
+    {
+      "clienteId": "2",
+      "cliente": "María Martínez Sánchez",
+      "datosCliente": {
+        "id": "2",
+        "nombre": "María",
+        "apellidos": "Martínez Sánchez",
+        "nif": "87654321B",
+        "direccion": "Avenida Constitución 45, 08002 Barcelona",
+        "telefono": "677234567",
+        "email": "maria.martinez@email.com",
+        "tipoCliente": "particular"
+      },
+      "lineas": [
+        {
+          "id": "1748725764740",
+          "tipo": "existente",
+          "producto": {
+            "id": "ventana",
+            "nombre": "Ventana"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "marca": "Cortizo",
+            "perfileria": "RPT",
+            "serie": "Serie 60",
+            "color": "Blanco",
+            "persiana": "Sin persiana",
+            "ancho": 300,
+            "alto": 300,
+            "apertura": "Practicable"
+          },
+          "cantidad": 1,
+          "precio": 7777
+        }
+      ],
+      "total": 7777,
+      "estado": "borrador",
+      "numero": "20250635",
+      "id": "1748725765973",
+      "version": 1,
+      "fecha": "2025-05-31T21:09:25.973Z",
+      "versiones": []
+    },
+    {
+      "clienteId": "3",
+      "cliente": "Construcciones ABC S.L.",
+      "datosCliente": {
+        "id": "3",
+        "nombre": "Construcciones ABC S.L.",
+        "apellidos": "",
+        "nif": "B12345678",
+        "direccion": "Polígono Industrial Norte, Nave 12, 46001 Valencia",
+        "telefono": "961234567",
+        "email": "info@construccionesabc.com",
+        "tipoCliente": "empresa"
+      },
+      "lineas": [
+        {
+          "id": "1748725875064",
+          "tipo": "existente",
+          "producto": {
+            "id": "mampara",
+            "nombre": "Mampara"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "tipo": "Frontal",
+            "cristal": "Transparente",
+            "espesor": "6mm",
+            "perfileria": "Cromo",
+            "ancho": 600,
+            "alto": 1800
+          },
+          "cantidad": 1,
+          "precio": 0
+        }
+      ],
+      "total": 0,
+      "estado": "borrador",
+      "numero": "20250636",
+      "id": "1748725878543",
+      "version": 1,
+      "fecha": "2025-05-31T21:11:18.543Z",
+      "versiones": []
+    },
+    {
+      "clienteId": "8",
+      "cliente": "Inmobiliaria Costa Dorada S.A.",
+      "datosCliente": {
+        "id": "8",
+        "nombre": "Inmobiliaria Costa Dorada S.A.",
+        "apellidos": "",
+        "nif": "A11223344",
+        "direccion": "Paseo Marítimo 100, 43001 Tarragona",
+        "telefono": "977123456",
+        "email": "info@costadorada.com",
+        "tipoCliente": "empresa"
+      },
+      "lineas": [
+        {
+          "id": "1748725904030",
+          "tipo": "existente",
+          "producto": {
+            "id": "mampara",
+            "nombre": "Mampara"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "tipo": "Frontal",
+            "cristal": "Transparente",
+            "espesor": "6mm",
+            "perfileria": "Cromo",
+            "ancho": 600,
+            "alto": 1800
+          },
+          "cantidad": 1,
+          "precio": 777
+        }
+      ],
+      "total": 777,
+      "estado": "borrador",
+      "numero": "20250637",
+      "id": "1748725905682",
+      "version": 1,
+      "fecha": "2025-05-31T21:11:45.682Z",
+      "versiones": []
+    },
+    {
+      "clienteId": "8",
+      "cliente": "Inmobiliaria Costa Dorada S.A.",
+      "datosCliente": {
+        "id": "8",
+        "nombre": "Inmobiliaria Costa Dorada S.A.",
+        "apellidos": "",
+        "nif": "A11223344",
+        "direccion": "Paseo Marítimo 100, 43001 Tarragona",
+        "telefono": "977123456",
+        "email": "info@costadorada.com",
+        "tipoCliente": "empresa"
+      },
+      "lineas": [
+        {
+          "id": "1748726252441",
+          "tipo": "existente",
+          "producto": {
+            "id": "puerta",
+            "nombre": "Puerta"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "material": "Madera maciza",
+            "tipo": "Abatible",
+            "acabado": "Lacado blanco",
+            "manilla": "Roseta",
+            "ancho": 600,
+            "alto": 1900
+          },
+          "cantidad": 1,
+          "precio": 0
+        },
+        {
+          "id": "1748726259580",
+          "tipo": "existente",
+          "producto": {
+            "id": "mampara",
+            "nombre": "Mampara"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "tipo": "Frontal",
+            "cristal": "Transparente",
+            "espesor": "6mm",
+            "perfileria": "Cromo",
+            "ancho": 600,
+            "alto": 1800
+          },
+          "cantidad": 1,
+          "precio": 0
+        }
+      ],
+      "total": 0,
+      "estado": "borrador",
+      "numero": "20250638",
+      "id": "1748726262719",
+      "version": 1,
+      "fecha": "2025-05-31T21:17:42.719Z",
+      "versiones": []
+    },
+    {
+      "clienteId": "3",
+      "cliente": "Construcciones ABC S.L.",
+      "datosCliente": {
+        "id": "3",
+        "nombre": "Construcciones ABC S.L.",
+        "apellidos": "",
+        "nif": "B12345678",
+        "direccion": "Polígono Industrial Norte, Nave 12, 46001 Valencia",
+        "telefono": "961234567",
+        "email": "info@construccionesabc.com",
+        "tipoCliente": "empresa"
+      },
+      "lineas": [
+        {
+          "id": "1748726461479",
+          "tipo": "existente",
+          "producto": {
+            "id": "mampara",
+            "nombre": "Mampara"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "tipo": "Frontal",
+            "cristal": "Transparente",
+            "espesor": "6mm",
+            "perfileria": "Cromo",
+            "ancho": 600,
+            "alto": 1800
+          },
+          "cantidad": 1,
+          "precio": 0
+        }
+      ],
+      "total": 0,
+      "estado": "borrador",
+      "numero": "20250639",
+      "id": "1748726463889",
+      "version": 1,
+      "fecha": "2025-05-31T21:21:03.889Z",
+      "versiones": []
+    },
+    {
+      "clienteId": "2",
+      "cliente": "María Martínez Sánchez",
+      "datosCliente": {
+        "id": "2",
+        "nombre": "María",
+        "apellidos": "Martínez Sánchez",
+        "nif": "87654321B",
+        "direccion": "Avenida Constitución 45, 08002 Barcelona",
+        "telefono": "677234567",
+        "email": "maria.martinez@email.com",
+        "tipoCliente": "particular"
+      },
+      "lineas": [
+        {
+          "id": "1748767526534",
+          "tipo": "existente",
+          "producto": {
+            "id": "ventana",
+            "nombre": "Ventana"
+          },
+          "referencia": "",
+          "caracteristicas": {
+            "marca": "Cortizo",
+            "perfileria": "RPT",
+            "serie": "Serie 60",
+            "color": "Blanco",
+            "persiana": "Sin persiana",
+            "ancho": 300,
+            "alto": 300,
+            "apertura": "Practicable"
+          },
+          "cantidad": 1,
+          "precio": 55
+        }
+      ],
+      "total": 55,
+      "estado": "aceptado",
+      "numero": "20250639",
+      "id": "1748767528633",
+      "version": 1,
+      "fecha": "2025-06-01T08:45:28.633Z",
+      "versiones": []
+    }
+  ]
+}
