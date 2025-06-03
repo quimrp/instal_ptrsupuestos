@@ -1,4 +1,6 @@
-{
+import { type ProductoCaracteristicas } from '@/services/dataService'
+
+export const productosCaracteristicas: Record<string, ProductoCaracteristicas> = {
   "ventana": {
     "nombre": "Ventana",
     "precioBase": 300,
@@ -6,21 +8,12 @@
       "marca": {
         "label": "Marca",
         "tipo": "select",
-        "opciones": [
-          "Cortizo",
-          "Technal",
-          "Schüco",
-          "Reynaers"
-        ]
+        "opciones": ["Cortizo", "Technal", "Schüco", "Reynaers"]
       },
       "serie": {
         "label": "Serie",
         "tipo": "select",
-        "opciones": [
-          "Serie 60",
-          "Serie 70",
-          "Serie 80"
-        ]
+        "opciones": ["Serie 60", "Serie 70", "Serie 80"]
       },
       "ancho": {
         "label": "Ancho (mm)",
@@ -40,71 +33,38 @@
         "label": "Persiana",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Sin persiana",
-            "precio": 0
-          },
-          {
-            "valor": "Persiana PVC",
-            "precio": 150
-          },
-          {
-            "valor": "Persiana Aluminio",
-            "precio": 250
-          },
-          {
-            "valor": "Persiana Motorizada",
-            "precio": 450
-          }
+          { "valor": "Sin persiana", "precio": 0 },
+          { "valor": "Persiana PVC", "precio": 150 },
+          { "valor": "Persiana Aluminio", "precio": 250 },
+          { "valor": "Persiana Motorizada", "precio": 450 }
         ],
         "incluyePrecio": true,
-        "precioBase": 100,
+        "precioBase": 0,
         "activadaPorDefecto": false
       },
       "apertura": {
         "label": "Tipo de apertura",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Abatible",
-            "precio": 0
-          },
-          {
-            "valor": "Oscilobatiente",
-            "precio": 120
-          },
-          {
-            "valor": "Corredera",
-            "precio": 80
-          }
+          { "valor": "Abatible", "precio": 0 },
+          { "valor": "Oscilobatiente", "precio": 120 },
+          { "valor": "Corredera", "precio": 80 }
         ],
         "incluyePrecio": true,
-        "precioBase": 30,
+        "precioBase": 0,
         "activadaPorDefecto": true
       },
       "cristal": {
         "label": "Tipo de cristal",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Simple 4mm",
-            "precio": 0
-          },
-          {
-            "valor": "Doble 4/16/4",
-            "precio": 85
-          },
-          {
-            "valor": "Doble bajo emisivo",
-            "precio": 120
-          },
-          {
-            "valor": "Triple",
-            "precio": 180
-          }
+          { "valor": "Simple 4mm", "precio": 0 },
+          { "valor": "Doble 4/16/4", "precio": 85 },
+          { "valor": "Doble bajo emisivo", "precio": 120 },
+          { "valor": "Triple", "precio": 180 }
         ],
         "incluyePrecio": true,
-        "precioBase": 20,
+        "precioBase": 0,
         "activadaPorDefecto": true
       }
     }
@@ -116,12 +76,7 @@
       "material": {
         "label": "Material",
         "tipo": "select",
-        "opciones": [
-          "Madera maciza",
-          "MDF lacado",
-          "Aluminio",
-          "PVC"
-        ]
+        "opciones": ["Madera maciza", "MDF lacado", "Aluminio", "PVC"]
       },
       "ancho": {
         "label": "Ancho (mm)",
@@ -141,18 +96,9 @@
         "label": "Tipo de manilla",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Manilla básica",
-            "precio": 25
-          },
-          {
-            "valor": "Manilla roseta",
-            "precio": 45
-          },
-          {
-            "valor": "Manilla electrónica",
-            "precio": 250
-          }
+          { "valor": "Manilla básica", "precio": 25 },
+          { "valor": "Manilla roseta", "precio": 45 },
+          { "valor": "Manilla electrónica", "precio": 250 }
         ],
         "incluyePrecio": true,
         "precioBase": 25,
@@ -162,18 +108,9 @@
         "label": "Cerradura de seguridad",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Estándar",
-            "precio": 0
-          },
-          {
-            "valor": "Seguridad 3 puntos",
-            "precio": 120
-          },
-          {
-            "valor": "Seguridad 5 puntos",
-            "precio": 220
-          }
+          { "valor": "Estándar", "precio": 0 },
+          { "valor": "Seguridad 3 puntos", "precio": 120 },
+          { "valor": "Seguridad 5 puntos", "precio": 220 }
         ],
         "incluyePrecio": true,
         "precioBase": 0,
@@ -188,12 +125,7 @@
       "modelo": {
         "label": "Modelo",
         "tipo": "select",
-        "opciones": [
-          "Extensible",
-          "Cofre",
-          "Semicofre",
-          "Punto recto"
-        ]
+        "opciones": ["Extensible", "Cofre", "Semicofre", "Punto recto"]
       },
       "ancho": {
         "label": "Ancho (mm)",
@@ -213,18 +145,9 @@
         "label": "Motorización",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Manual",
-            "precio": 0
-          },
-          {
-            "valor": "Motor con mando",
-            "precio": 320
-          },
-          {
-            "valor": "Motor inteligente",
-            "precio": 580
-          }
+          { "valor": "Manual", "precio": 0 },
+          { "valor": "Motor con mando", "precio": 320 },
+          { "valor": "Motor inteligente", "precio": 580 }
         ],
         "incluyePrecio": true,
         "precioBase": 0,
@@ -234,18 +157,9 @@
         "label": "Sensores",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Sin sensores",
-            "precio": 0
-          },
-          {
-            "valor": "Sensor viento",
-            "precio": 120
-          },
-          {
-            "valor": "Sensor viento + sol",
-            "precio": 220
-          }
+          { "valor": "Sin sensores", "precio": 0 },
+          { "valor": "Sensor viento", "precio": 120 },
+          { "valor": "Sensor viento + sol", "precio": 220 }
         ],
         "incluyePrecio": true,
         "precioBase": 0,
@@ -260,11 +174,7 @@
       "tipo": {
         "label": "Tipo de mampara",
         "tipo": "select",
-        "opciones": [
-          "Frontal",
-          "Angular",
-          "Semicircular"
-        ]
+        "opciones": ["Frontal", "Angular", "Semicircular"]
       },
       "ancho": {
         "label": "Ancho (mm)",
@@ -284,22 +194,10 @@
         "label": "Tipo de cristal",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Transparente 6mm",
-            "precio": 0
-          },
-          {
-            "valor": "Transparente 8mm",
-            "precio": 50
-          },
-          {
-            "valor": "Serigrafiado",
-            "precio": 80
-          },
-          {
-            "valor": "Mate",
-            "precio": 90
-          }
+          { "valor": "Transparente 6mm", "precio": 0 },
+          { "valor": "Transparente 8mm", "precio": 50 },
+          { "valor": "Serigrafiado", "precio": 80 },
+          { "valor": "Mate", "precio": 90 }
         ],
         "incluyePrecio": true,
         "precioBase": 0,
@@ -309,14 +207,8 @@
         "label": "Tratamiento antical",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Sin tratamiento",
-            "precio": 0
-          },
-          {
-            "valor": "Tratamiento antical",
-            "precio": 60
-          }
+          { "valor": "Sin tratamiento", "precio": 0 },
+          { "valor": "Tratamiento antical", "precio": 60 }
         ],
         "incluyePrecio": true,
         "precioBase": 0,
@@ -326,18 +218,9 @@
         "label": "Acabado perfilería",
         "tipo": "select",
         "opciones": [
-          {
-            "valor": "Cromado",
-            "precio": 0
-          },
-          {
-            "valor": "Negro mate",
-            "precio": 45
-          },
-          {
-            "valor": "Dorado",
-            "precio": 85
-          }
+          { "valor": "Cromado", "precio": 0 },
+          { "valor": "Negro mate", "precio": 45 },
+          { "valor": "Dorado", "precio": 85 }
         ],
         "incluyePrecio": true,
         "precioBase": 0,
@@ -346,3 +229,5 @@
     }
   }
 }
+
+export default productosCaracteristicas 

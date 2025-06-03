@@ -17,7 +17,8 @@ import {
   IdentificationIcon,
   DocumentDuplicateIcon,
   ClockIcon,
-  EyeIcon
+  EyeIcon,
+  ShareIcon
 } from '@heroicons/react/20/solid'
 import { Heading } from '@/components/catalyst/heading'
 import { Text } from '@/components/catalyst/text'
@@ -230,21 +231,64 @@ export default function DetallePresupuestoPage() {
             <DocumentDuplicateIcon className="h-4 w-4" />
             Nueva Versión
           </Button>
-          <Button
-            onClick={() => {
-              // Editar la versión seleccionada
-              if (versionSeleccionada === presupuesto.version) {
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => {
+                console.log('Clic en botón editar')
+                console.log('ID del presupuesto:', presupuesto.id)
+                console.log('Ruta a navegar:', `/presupuestos/${presupuesto.id}/editar`)
                 router.push(`/presupuestos/${presupuesto.id}/editar`)
-              } else {
-                router.push(`/presupuestos/${presupuesto.id}/editar?version=${versionSeleccionada}`)
-              }
-            }}
-            className="gap-2"
-            color="blue"
-          >
-            <PencilIcon className="h-4 w-4" />
-            Editar v{versionSeleccionada}
-          </Button>
+              }}
+              className="gap-2"
+            >
+              <PencilIcon className="h-5 w-5" />
+              Editar
+            </Button>
+            <Button
+              onClick={async () => {
+                const url = `${window.location.origin}/p/${presupuesto.id}`
+                try {
+                  if (!navigator.clipboard) {
+                    throw new Error('El API del portapapeles no está disponible')
+                  }
+                  await navigator.clipboard.writeText(url)
+                  // Mostrar mensaje de éxito
+                  const toast = document.createElement('div')
+                  toast.className = 'fixed top-4 right-4 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-6 py-3 rounded-lg shadow-lg z-50'
+                  toast.textContent = '✓ Enlace copiado al portapapeles'
+                  document.body.appendChild(toast)
+                  setTimeout(() => {
+                    toast.remove()
+                  }, 3000)
+                } catch (error) {
+                  // Mostrar mensaje de error
+                  const toast = document.createElement('div')
+                  toast.className = 'fixed top-4 right-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-6 py-3 rounded-lg shadow-lg z-50'
+                  toast.textContent = '❌ No se pudo copiar el enlace'
+                  document.body.appendChild(toast)
+                  setTimeout(() => {
+                    toast.remove()
+                  }, 3000)
+                  // Fallback: Seleccionar el texto para copiado manual
+                  const input = document.createElement('input')
+                  input.value = url
+                  document.body.appendChild(input)
+                  input.select()
+                  try {
+                    document.execCommand('copy')
+                    toast.textContent = '✓ Enlace copiado al portapapeles'
+                  } catch (err) {
+                    console.error('Error al copiar:', err)
+                  }
+                  document.body.removeChild(input)
+                }
+              }}
+              className="gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <ShareIcon className="h-5 w-5" />
+              Compartir
+            </Button>
+          </div>
         </div>
       </div>
       
@@ -320,20 +364,31 @@ export default function DetallePresupuestoPage() {
             <TableRow key={linea.id}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {linea.tipo === 'nuevo' && (
-                    <SparklesIcon className="h-4 w-4 text-green-600" />
-                  )}
                   <div>
                     <Text className="font-medium">
-                      {linea.tipo === 'existente' ? linea.producto?.nombre : linea.descripcion}
+                      {linea.producto?.nombre}
                     </Text>
-                    {linea.caracteristicas && (
+                    {/* Mostrar características permanentes */}
+                    {linea.caracteristicasPermanentes && Object.keys(linea.caracteristicasPermanentes).length > 0 && (
                       <Text className="text-sm text-zinc-500 mt-1">
-                        {Object.entries(linea.caracteristicas)
+                        {Object.entries(linea.caracteristicasPermanentes)
                           .filter(([_, value]) => value)
                           .map(([key, value]) => (
                             <span key={key} className="inline-block mr-3">
-                              <span className="font-medium">{key}:</span> {value}
+                              <span className="font-medium">{key}:</span> {value.valor}
+                            </span>
+                          ))}
+                      </Text>
+                    )}
+                    {/* Mostrar características seleccionables activas */}
+                    {linea.caracteristicasSeleccionables && Object.keys(linea.caracteristicasSeleccionables).length > 0 && (
+                      <Text className="text-sm text-green-600 mt-1">
+                        {Object.entries(linea.caracteristicasSeleccionables)
+                          .filter(([_, value]) => value.activada)
+                          .map(([key, value]) => (
+                            <span key={key} className="inline-block mr-3">
+                              ✓ <span className="font-medium">{key}:</span> {value.valor}
+                              {value.precio !== undefined && value.precio > 0 && ` (+${value.precio}€)`}
                             </span>
                           ))}
                       </Text>

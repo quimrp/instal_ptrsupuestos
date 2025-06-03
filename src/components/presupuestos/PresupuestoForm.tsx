@@ -18,25 +18,19 @@ import {
   ChevronDownIcon,
   LockClosedIcon
 } from '@heroicons/react/20/solid'
-import { dataService, type CaracteristicaProducto, type Presupuesto, type Cliente } from '@/services/dataService'
+import { dataService, type Presupuesto, type Cliente, type CaracteristicaValor, type LineaPresupuesto, type CaracteristicaSeleccionable, type CaracteristicaPermanente } from '@/services/dataService'
 import { Dialog, DialogTitle, DialogDescription, DialogBody, DialogActions } from '@/components/catalyst/dialog'
 import { ClienteFormModal } from '@/components/clientes/ClienteFormModal'
 import { Fieldset, Legend, FieldGroup, Field, Label, Description, ErrorMessage } from '@/components/catalyst/fieldset'
+import { CaracteristicasTable } from './CaracteristicasTable'
+import { NuevaCaracteristicaModal } from './NuevaCaracteristicaModal'
+import { CaracteristicasSeleccionables } from './CaracteristicasSeleccionables'
+import { Switch } from '@/components/catalyst/switch'
+import type { OpcionGlobalPresupuesto } from '@/types/presupuesto'
 
 type Producto = {
   id: string
   nombre: string
-}
-
-type LineaPresupuesto = {
-  id: string
-  tipo: 'existente' | 'nuevo'
-  producto?: Producto
-  descripcion?: string
-  referencia?: string
-  caracteristicas?: Record<string, any>
-  cantidad: number
-  precio: number
 }
 
 interface PresupuestoFormProps {
@@ -52,6 +46,12 @@ const estadosDisponibles: { value: EstadoPresupuesto; label: string; color: stri
   { value: 'rechazado', label: 'Rechazado', color: 'red' }
 ]
 
+type NuevaLinea = {
+  referencia?: string
+  cantidad: number
+  precio: number
+}
+
 export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
   const [lineas, setLineas] = useState<LineaPresupuesto[]>([])
   const [mostrarFormularioProducto, setMostrarFormularioProducto] = useState(false)
@@ -59,7 +59,7 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null)
   const [lineaEditando, setLineaEditando] = useState<string | null>(null)
   const [productosDisponibles, setProductosDisponibles] = useState<Producto[]>([])
-  const [caracteristicasProducto, setCaracteristicasProducto] = useState<Record<string, any>>({})
+  const [caracteristicasProducto, setCaracteristicasProducto] = useState<Record<string, CaracteristicaValor>>({})
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null)
   const [mostrarModalCrearCliente, setMostrarModalCrearCliente] = useState(false)
@@ -67,11 +67,21 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
   const [mostrarAlertaCliente, setMostrarAlertaCliente] = useState(false)
   const [mensajeAlerta, setMensajeAlerta] = useState('')
   const [estadoPresupuesto, setEstadoPresupuesto] = useState<EstadoPresupuesto>('borrador')
-  const [nuevaLinea, setNuevaLinea] = useState<Partial<LineaPresupuesto>>({
+  const [nuevaLinea, setNuevaLinea] = useState<NuevaLinea>({
     cantidad: 1,
     precio: 0,
     referencia: ''
   })
+  const [mostrarModalNuevaCaracteristica, setMostrarModalNuevaCaracteristica] = useState(false)
+  const [opcionesGlobales, setOpcionesGlobales] = useState<OpcionGlobalPresupuesto[]>(presupuestoInicial?.opcionesGlobales || [])
+  const [mostrarModalOpcionGlobal, setMostrarModalOpcionGlobal] = useState(false)
+  const [opcionGlobalEditando, setOpcionGlobalEditando] = useState<null | {
+    id: string
+    nombre: string
+    descripcion: string
+    precio: number
+    activada: boolean
+  }>(null)
   const router = useRouter()
   const esEdicion = !!presupuestoInicial
 
@@ -134,20 +144,195 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
       const caracteristicas = dataService.getProductoCaracteristicas(productoSeleccionado.id)
       if (caracteristicas) {
         // Inicializar valores por defecto
-        const valoresIniciales: Record<string, any> = {}
-        Object.entries(caracteristicas.caracteristicas).forEach(([key, config]) => {
+        const valoresIniciales: Record<string, CaracteristicaValor> = {}
+        
+        // Procesar características permanentes
+        Object.entries(caracteristicas.caracteristicasPermanentes || {}).forEach(([key, config]) => {
+          const valor = {
+            valor: config.tipo === 'select' && config.opciones && config.opciones.length > 0
+              ? config.opciones[0]
+              : config.tipo === 'number'
+              ? config.min || 0
+              : '',
+            precio: undefined,
+            activada: true
+          }
+          valoresIniciales[key] = valor
+        })
+
+        // Procesar características seleccionables
+        Object.entries(caracteristicas.caracteristicasSeleccionables || {}).forEach(([key, config]) => {
+          let valorInicial: any = ''
+          let precioInicial = config.precioBase || 0
+
           if (config.tipo === 'select' && config.opciones && config.opciones.length > 0) {
-            valoresIniciales[key] = config.opciones[0]
+            valorInicial = config.opciones[0].valor
+            precioInicial = config.opciones[0].precio
           } else if (config.tipo === 'number') {
-            valoresIniciales[key] = config.min || 0
-          } else {
-            valoresIniciales[key] = ''
+            valorInicial = config.min || 0
+          }
+
+          valoresIniciales[key] = {
+            valor: valorInicial,
+            precio: config.incluyePrecio ? precioInicial : undefined,
+            activada: config.activadaPorDefecto
           }
         })
+
         setCaracteristicasProducto(valoresIniciales)
+        
+        // Calcular precio inicial incluyendo características activas
+        const precioBase = caracteristicas.precioBase || 0
+        const precioCaracteristicas = Object.values(valoresIniciales)
+          .reduce((total, { precio, activada }) => {
+            return total + (activada && precio ? precio : 0)
+          }, 0)
+        
+        // Establecer precio total del producto
+          setNuevaLinea(prev => ({
+            ...prev,
+          precio: precioBase + precioCaracteristicas
+          }))
       }
     }
   }, [productoSeleccionado])
+
+  const calcularPrecioTotal = (caracteristicas: Record<string, CaracteristicaValor>, precioBase: number) => {
+    console.log('=== Calculando Precio Total ===')
+    console.log('Precio Base:', precioBase)
+    
+    // Calcular la suma de los precios de las características activas
+    const precioCaracteristicas = Object.entries(caracteristicas).reduce((total, [nombre, { precio, activada }]) => {
+      // Solo sumar si la característica está activada (o es permanente) y tiene precio
+      const estaActiva = activada === undefined || activada === true
+      const precioCaracteristica = estaActiva && precio ? precio : 0
+      
+      console.log(`Característica "${nombre}":`, {
+        precio: precio || 0,
+        activada: estaActiva,
+        sumado: precioCaracteristica
+      })
+      
+      return total + precioCaracteristica
+    }, 0)
+    
+    console.log('Suma precios características:', precioCaracteristicas)
+    console.log('Precio Total Final:', precioBase + precioCaracteristicas)
+    console.log('========================')
+
+    // Retornar la suma del precio base más las características
+    return precioBase + precioCaracteristicas
+  }
+
+  const actualizarCaracteristica = (nombre: string, valor: any, activada?: boolean) => {
+    console.log('Actualizando característica:', { nombre, valor, activada })
+    if (!productoSeleccionado) return
+
+    const caracteristicas = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+    if (!caracteristicas) return
+
+    // Buscar la característica en ambas secciones
+    const configPermanente = caracteristicas.caracteristicasPermanentes?.[nombre]
+    const configSeleccionable = caracteristicas.caracteristicasSeleccionables?.[nombre]
+
+    setCaracteristicasProducto(prev => {
+      // Crear una copia del estado actual
+      const nuevasCaracteristicas = { ...prev }
+
+      // Actualizar o crear la característica
+      if (configPermanente) {
+      nuevasCaracteristicas[nombre] = {
+        valor,
+          precio: undefined,
+          activada: true
+        }
+      } else if (configSeleccionable) {
+        // Para características seleccionables de tipo select con opciones con precio
+        let precioCaracteristica = configSeleccionable.precioBase || 0
+        
+        if (configSeleccionable.tipo === 'select' && configSeleccionable.opciones) {
+          // Buscar el precio específico de la opción seleccionada
+          const opcionSeleccionada = configSeleccionable.opciones.find(opt => opt.valor === valor)
+          if (opcionSeleccionada) {
+            precioCaracteristica = opcionSeleccionada.precio
+          }
+        }
+        
+        nuevasCaracteristicas[nombre] = {
+          valor,
+          precio: configSeleccionable.incluyePrecio ? precioCaracteristica : undefined,
+          activada: activada ?? prev[nombre]?.activada ?? configSeleccionable.activadaPorDefecto
+        }
+      }
+
+      console.log('Nuevas características:', nuevasCaracteristicas)
+
+      // Calcular el precio total
+      const precioBase = caracteristicas.precioBase || 0
+      const precioCaracteristicas = Object.entries(nuevasCaracteristicas)
+        .reduce((total, [_, caracteristica]) => {
+          return total + (caracteristica.activada && caracteristica.precio ? caracteristica.precio : 0)
+        }, 0)
+
+      console.log('Precios:', {
+        base: precioBase,
+        caracteristicas: precioCaracteristicas,
+        total: precioBase + precioCaracteristicas
+      })
+
+      // Actualizar el precio de la línea
+      setNuevaLinea(prev => ({
+        ...prev,
+        precio: precioBase + precioCaracteristicas
+      }))
+
+      return nuevasCaracteristicas
+    })
+  }
+
+  const actualizarPrecioCaracteristica = (nombre: string, precio: number) => {
+    console.log('Actualizando precio de característica:', { nombre, precio })
+    if (!productoSeleccionado) return
+
+    const caracteristicas = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+    if (!caracteristicas) return
+
+    setCaracteristicasProducto(prev => {
+      // Crear una copia del estado actual
+      const nuevasCaracteristicas = { ...prev }
+
+      // Actualizar el precio de la característica
+      if (nombre in nuevasCaracteristicas) {
+        nuevasCaracteristicas[nombre] = {
+          ...nuevasCaracteristicas[nombre],
+          precio
+        }
+      }
+
+      console.log('Nuevas características después de actualizar precio:', nuevasCaracteristicas)
+
+      // Calcular el precio total
+      const precioBase = caracteristicas.precioBase || 0
+      const precioCaracteristicas = Object.entries(nuevasCaracteristicas)
+        .reduce((total, [_, caracteristica]) => {
+          return total + (caracteristica.activada && caracteristica.precio ? caracteristica.precio : 0)
+        }, 0)
+
+      console.log('Precios después de actualizar:', {
+        base: precioBase,
+        caracteristicas: precioCaracteristicas,
+        total: precioBase + precioCaracteristicas
+      })
+
+      // Actualizar el precio de la línea
+      setNuevaLinea(prev => ({
+        ...prev,
+        precio: precioBase + precioCaracteristicas
+      }))
+
+      return nuevasCaracteristicas
+    })
+  }
 
   const agregarProductoExistente = () => {
     if (!productoSeleccionado) {
@@ -161,23 +346,46 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
       setMostrarAlertaCliente(true)
       return
     }
+
+    console.log('=== Agregando Producto Existente ===')
+    console.log('Producto:', productoSeleccionado)
+    console.log('Precio Final:', nuevaLinea.precio)
+    console.log('Características:', caracteristicasProducto)
     
     const nueva: LineaPresupuesto = {
       id: Date.now().toString(),
       tipo: 'existente',
-      producto: productoSeleccionado,
+      producto: {
+        id: productoSeleccionado.id,
+        nombre: productoSeleccionado.nombre
+      },
       referencia: nuevaLinea.referencia || '',
-      caracteristicas: caracteristicasProducto,
+      caracteristicasPermanentes: {},
+      caracteristicasSeleccionables: {},
       cantidad: nuevaLinea.cantidad || 1,
       precio: nuevaLinea.precio || 0
     }
+
+    // Separar las características en permanentes y seleccionables
+    Object.entries(caracteristicasProducto).forEach(([nombre, valor]) => {
+      const caracteristicas = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+      if (!caracteristicas) return
+
+      if (nombre in caracteristicas.caracteristicasPermanentes) {
+        nueva.caracteristicasPermanentes[nombre] = valor
+      } else if (nombre in caracteristicas.caracteristicasSeleccionables) {
+        nueva.caracteristicasSeleccionables[nombre] = valor
+      }
+    })
+
+    console.log('Nueva línea a agregar:', nueva)
     setLineas([...lineas, nueva])
     resetearFormulario()
   }
 
-  const crearProductoNuevo = () => {
-    if (!nuevaLinea.descripcion || nuevaLinea.descripcion.trim() === '') {
-      setMensajeAlerta('Debes escribir una descripción para el producto')
+  const agregarProductoPersonalizado = () => {
+    if (!nuevaLinea.referencia) {
+      setMensajeAlerta('La referencia es obligatoria para productos personalizados')
       setMostrarAlertaCliente(true)
       return
     }
@@ -190,9 +398,14 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
     
     const nueva: LineaPresupuesto = {
       id: Date.now().toString(),
-      tipo: 'nuevo',
-      descripcion: nuevaLinea.descripcion,
-      referencia: nuevaLinea.referencia || '',
+      tipo: 'personalizado',
+      producto: {
+        id: 'personalizado',
+        nombre: nuevaLinea.referencia
+      },
+      referencia: nuevaLinea.referencia,
+      caracteristicasPermanentes: {},
+      caracteristicasSeleccionables: {},
       cantidad: nuevaLinea.cantidad || 1,
       precio: nuevaLinea.precio || 0
     }
@@ -200,18 +413,212 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
     resetearFormulario()
   }
 
+  const crearProductoNuevo = () => {
+    if (!nuevaLinea.referencia) {
+      setMensajeAlerta('La referencia es obligatoria para productos personalizados')
+      setMostrarAlertaCliente(true)
+      return
+    }
+    
+    if (nuevaLinea.precio === 0 || !nuevaLinea.precio) {
+      setMensajeAlerta('El precio del producto no puede ser 0')
+      setMostrarAlertaCliente(true)
+      return
+    }
+    
+    const nueva: LineaPresupuesto = {
+      id: Date.now().toString(),
+      tipo: 'personalizado',
+      producto: {
+        id: 'personalizado',
+        nombre: nuevaLinea.referencia
+      },
+      referencia: nuevaLinea.referencia || '',
+      caracteristicasPermanentes: {},
+      caracteristicasSeleccionables: {},
+      cantidad: nuevaLinea.cantidad || 1,
+      precio: nuevaLinea.precio || 0
+    }
+    setLineas([...lineas, nueva])
+    resetearFormulario()
+  }
+
+  const editarLinea = (linea: LineaPresupuesto) => {
+    console.log('Editando línea:', linea)
+    setLineaEditando(linea.id)
+    setMostrarFormularioProducto(true)
+    setMostrarFormularioNuevo(false)
+
+    if (linea.tipo === 'existente') {
+      const producto = productosDisponibles.find(p => p.id === linea.producto.id)
+      if (producto) {
+        console.log('Producto encontrado:', producto)
+        setProductoSeleccionado(producto)
+        
+        // Obtener la configuración del producto
+        const configuracionProducto = dataService.getProductoCaracteristicas(producto.id)
+        if (configuracionProducto) {
+          // Inicializar características con valores por defecto
+          const caracteristicasIniciales: Record<string, CaracteristicaValor> = {}
+
+          // Procesar características permanentes
+          Object.entries(configuracionProducto.caracteristicasPermanentes || {}).forEach(([nombre, config]) => {
+            caracteristicasIniciales[nombre] = {
+              valor: linea.caracteristicasPermanentes[nombre]?.valor || (
+                config.tipo === 'select' && config.opciones && config.opciones.length > 0
+                  ? config.opciones[0]
+                  : config.tipo === 'number'
+                  ? config.min || 0
+                  : ''
+              ),
+              precio: undefined,
+              activada: true
+            }
+          })
+
+          // Procesar características seleccionables
+          Object.entries(configuracionProducto.caracteristicasSeleccionables || {}).forEach(([nombre, config]) => {
+            const caracteristicaExistente = linea.caracteristicasSeleccionables[nombre]
+            
+            let valorInicial = caracteristicaExistente?.valor
+            let precioInicial = config.precioBase || 0
+            
+            if (!valorInicial) {
+              // Si no hay valor existente, usar el valor por defecto
+              if (config.tipo === 'select' && config.opciones && config.opciones.length > 0) {
+                valorInicial = config.opciones[0].valor
+                precioInicial = config.opciones[0].precio
+              } else if (config.tipo === 'number') {
+                valorInicial = config.min || 0
+              } else {
+                valorInicial = ''
+              }
+            } else if (config.tipo === 'select' && config.opciones) {
+              // Si hay valor existente y es un select, buscar el precio de la opción
+              const opcionSeleccionada = config.opciones.find(opt => opt.valor === valorInicial)
+              if (opcionSeleccionada) {
+                precioInicial = opcionSeleccionada.precio
+              }
+            }
+            
+            caracteristicasIniciales[nombre] = {
+              valor: valorInicial,
+              precio: caracteristicaExistente?.precio || (config.incluyePrecio ? precioInicial : undefined),
+              activada: caracteristicaExistente?.activada ?? config.activadaPorDefecto
+            }
+          })
+
+          console.log('Características inicializadas:', caracteristicasIniciales)
+          setCaracteristicasProducto(caracteristicasIniciales)
+        }
+      }
+    }
+
+    setNuevaLinea({
+      referencia: linea.referencia || '',
+      cantidad: linea.cantidad,
+      precio: linea.precio
+    })
+
+    // Asegurarse de que el formulario sea visible
+    const formulario = document.querySelector('.border.border-zinc-200')
+    if (formulario) {
+      formulario.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   const actualizarLinea = (id: string) => {
-    setLineas(lineas.map(linea => 
-      linea.id === id 
-        ? { 
-            ...linea, 
-            ...nuevaLinea, 
-            producto: productoSeleccionado || linea.producto,
-            caracteristicas: caracteristicasProducto
+    console.log('Actualizando línea:', id)
+    console.log('Estado actual de características:', caracteristicasProducto)
+    
+    if (!productoSeleccionado && !nuevaLinea.referencia) {
+      setMensajeAlerta('Debes seleccionar un producto o ingresar una referencia')
+      setMostrarAlertaCliente(true)
+      return
+    }
+
+    setLineas(lineasActuales => lineasActuales.map(linea => {
+      if (linea.id === id) {
+        if (productoSeleccionado) {
+          console.log('Actualizando línea existente con producto:', productoSeleccionado)
+          
+          // Obtener la configuración del producto
+          const configuracionProducto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+          if (!configuracionProducto) return linea
+
+          // Separar características en permanentes y seleccionables
+          const caracteristicasPermanentes: Record<string, CaracteristicaValor> = {}
+          const caracteristicasSeleccionables: Record<string, CaracteristicaValor> = {}
+
+          // Procesar todas las características del producto
+          Object.entries(caracteristicasProducto).forEach(([nombre, caracteristica]) => {
+            console.log(`Procesando característica ${nombre}:`, caracteristica)
+
+            // Verificar si es una característica permanente
+            if (configuracionProducto.caracteristicasPermanentes?.[nombre]) {
+              caracteristicasPermanentes[nombre] = {
+                valor: caracteristica.valor,
+                precio: caracteristica.precio,
+                activada: true
+              }
+            }
+            // Verificar si es una característica seleccionable
+            else if (configuracionProducto.caracteristicasSeleccionables?.[nombre]) {
+              caracteristicasSeleccionables[nombre] = {
+                valor: caracteristica.valor,
+                precio: caracteristica.precio,
+                activada: caracteristica.activada ?? false
+              }
+            }
+          })
+
+          console.log('Características permanentes finales:', caracteristicasPermanentes)
+          console.log('Características seleccionables finales:', caracteristicasSeleccionables)
+
+          // Usar el precio que ya se calculó y está en nuevaLinea
+          const precioTotal = nuevaLinea.precio
+
+          console.log('Precio total desde nuevaLinea:', precioTotal)
+
+          const lineaActualizada: LineaPresupuesto = {
+            ...linea,
+            tipo: 'existente' as const,
+            producto: {
+              id: productoSeleccionado.id,
+              nombre: productoSeleccionado.nombre
+            },
+            referencia: nuevaLinea.referencia || '',
+            caracteristicasPermanentes,
+            caracteristicasSeleccionables,
+            cantidad: nuevaLinea.cantidad || 1,
+            precio: precioTotal
           }
-        : linea
-    ))
+
+          console.log('Línea actualizada:', lineaActualizada)
+          return lineaActualizada
+        } else {
+          console.log('Actualizando línea como personalizada')
+          const lineaPersonalizada: LineaPresupuesto = {
+            ...linea,
+            tipo: 'personalizado' as const,
+            producto: {
+              id: 'personalizado',
+              nombre: nuevaLinea.referencia || ''
+            },
+            referencia: nuevaLinea.referencia || '',
+            caracteristicasPermanentes: {},
+            caracteristicasSeleccionables: {},
+            cantidad: nuevaLinea.cantidad || 1,
+            precio: nuevaLinea.precio || 0
+          }
+          return lineaPersonalizada
+        }
+      }
+      return linea
+    }))
+
     setLineaEditando(null)
+    setMostrarFormularioProducto(false)
     resetearFormulario()
   }
 
@@ -245,112 +652,90 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
     setLineas(nuevasLineas)
   }
 
-  const editarLinea = (linea: LineaPresupuesto) => {
-    setLineaEditando(linea.id)
-    setNuevaLinea({
-      descripcion: linea.descripcion,
-      referencia: linea.referencia || '',
-      cantidad: linea.cantidad,
-      precio: linea.precio
-    })
-    setProductoSeleccionado(linea.producto || null)
-    if (linea.caracteristicas) {
-      setCaracteristicasProducto(linea.caracteristicas)
-    }
-    if (linea.tipo === 'existente') {
-      setMostrarFormularioProducto(true)
-    } else {
-      setMostrarFormularioNuevo(true)
-    }
-  }
-
   const resetearFormulario = () => {
-    setMostrarFormularioProducto(false)
-    setMostrarFormularioNuevo(false)
     setProductoSeleccionado(null)
     setCaracteristicasProducto({})
-    setNuevaLinea({ cantidad: 1, precio: 0, referencia: '' })
+    setNuevaLinea({
+      cantidad: 1,
+      precio: 0,
+      referencia: ''
+    })
   }
 
-  const renderizarCampoCaracteristica = (key: string, config: CaracteristicaProducto) => {
-    if (config.tipo === 'select' && config.opciones) {
-      return (
-        <div key={key}>
-          <label className="block text-sm font-medium mb-2">{config.label}</label>
-          <Listbox 
-            value={caracteristicasProducto[key]} 
-            onChange={(value) => setCaracteristicasProducto({...caracteristicasProducto, [key]: value})}
-          >
-            {config.opciones.map((opcion) => (
-              <ListboxOption key={opcion} value={opcion}>
-                <ListboxLabel>{opcion}</ListboxLabel>
-              </ListboxOption>
-            ))}
-          </Listbox>
-        </div>
-      )
-    } else if (config.tipo === 'number') {
-      return (
-        <div key={key}>
-          <label className="block text-sm font-medium mb-2">{config.label}</label>
-          <Input 
-            type="number" 
-            min={config.min}
-            max={config.max}
-            value={caracteristicasProducto[key] || ''}
-            onChange={(e) => setCaracteristicasProducto({
-              ...caracteristicasProducto, 
-              [key]: parseInt(e.target.value) || 0
-            })}
-          />
-        </div>
-      )
-    }
-    return null
+  const abrirModalNuevaOpcionGlobal = () => {
+    setOpcionGlobalEditando(null)
+    setMostrarModalOpcionGlobal(true)
   }
+
+  const abrirModalEditarOpcionGlobal = (opcion: {
+    id: string
+    nombre: string
+    descripcion: string
+    precio: number
+    activada: boolean
+  }) => {
+    setOpcionGlobalEditando(opcion)
+    setMostrarModalOpcionGlobal(true)
+  }
+
+  const guardarOpcionGlobal = (opcion: {
+    id: string
+    nombre: string
+    descripcion: string
+    precio: number
+    activada: boolean
+  }) => {
+    if (opcion.id) {
+      setOpcionesGlobales(prev => prev.map(o => o.id === opcion.id ? opcion : o))
+    } else {
+      setOpcionesGlobales(prev => [...prev, { ...opcion, id: Date.now().toString() }])
+    }
+    setMostrarModalOpcionGlobal(false)
+  }
+
+  const eliminarOpcionGlobal = (id: string) => {
+    setOpcionesGlobales(prev => prev.filter(o => o.id !== id))
+  }
+
+  const toggleOpcionGlobal = (id: string) => {
+    setOpcionesGlobales(prev => prev.map(o => o.id === id ? { ...o, activada: !o.activada } : o))
+  }
+
+  const totalOpcionesGlobales = opcionesGlobales.reduce((sum, o) => o.activada ? sum + o.precio : sum, 0)
+  const totalPresupuesto = lineas.reduce((sum, linea) => sum + (linea.cantidad * linea.precio), 0) + totalOpcionesGlobales
 
   const guardarPresupuesto = async () => {
-    // Validar cliente
     if (!clienteSeleccionado) {
-      setMensajeAlerta('No puedes guardar un presupuesto sin seleccionar un cliente')
+      setMensajeAlerta('Debes seleccionar un cliente')
       setMostrarAlertaCliente(true)
       return
     }
-    
-    // Validar que hay líneas
     if (lineas.length === 0) {
-      setMensajeAlerta('No puedes guardar un presupuesto sin productos')
+      setMensajeAlerta('Debes agregar al menos una línea al presupuesto')
       setMostrarAlertaCliente(true)
       return
     }
-    
     try {
+      const total = totalPresupuesto
       const datosPresupuesto = {
-        clienteId: clienteSeleccionado?.id,
-        cliente: clienteSeleccionado ? 
-          `${clienteSeleccionado.nombre}${clienteSeleccionado.apellidos ? ' ' + clienteSeleccionado.apellidos : ''}` : '',
-        datosCliente: clienteSeleccionado || undefined,
-        lineas: lineas,
-        total: lineas.reduce((sum, linea) => sum + (linea.cantidad * linea.precio), 0),
-        estado: estadoPresupuesto,
-        // Incluir el número solo si es nuevo presupuesto
-        ...((!esEdicion && numeroPresupuesto) ? { numero: numeroPresupuesto } : {})
+        numero: presupuestoInicial?.numero,
+        clienteId: clienteSeleccionado.id,
+        cliente: clienteSeleccionado.nombre,
+        datosCliente: clienteSeleccionado,
+        lineas,
+        opcionesGlobales,
+        total,
+        estado: estadoPresupuesto
       }
-
-      if (esEdicion && presupuestoInicial) {
-        // Actualizar presupuesto existente
+      if (presupuestoInicial) {
         await dataService.actualizarPresupuesto(presupuestoInicial.id, datosPresupuesto)
-        console.log('Presupuesto actualizado')
       } else {
-        // Crear nuevo presupuesto
-        const presupuesto = await dataService.guardarPresupuesto(datosPresupuesto)
-        console.log('Presupuesto guardado:', presupuesto)
+        await dataService.guardarPresupuesto(datosPresupuesto)
       }
-      
-      // Redirigir a la lista de presupuestos
       router.push('/presupuestos/lista')
     } catch (error) {
       console.error('Error al guardar presupuesto:', error)
+      setMensajeAlerta(error instanceof Error ? error.message : 'Error al guardar presupuesto')
     }
   }
 
@@ -381,6 +766,59 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
       case 'rechazado': return 'red'
       default: return 'zinc'
     }
+  }
+
+  const renderizarLinea = (linea: LineaPresupuesto) => {
+    // Obtener la configuración del producto para acceder a las etiquetas
+    const productoConfig = linea.tipo === 'existente' 
+      ? dataService.getProductoCaracteristicas(linea.producto.id) 
+      : null
+
+    return (
+      <div key={linea.id} className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{linea.producto.nombre}</span>
+            {linea.referencia && (
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                (Ref: {linea.referencia})
+              </span>
+            )}
+          </div>
+        
+          {/* Mostrar características permanentes */}
+          {linea.caracteristicasPermanentes && Object.entries(linea.caracteristicasPermanentes).length > 0 && (
+          <div className="ml-4 text-sm text-zinc-600 dark:text-zinc-400">
+            {Object.entries(linea.caracteristicasPermanentes).map(([nombre, { valor }]) => {
+              const label = productoConfig?.caracteristicasPermanentes?.[nombre]?.label || nombre
+              return (
+                <div key={nombre}>
+                  <span className="font-medium">{label}:</span> {valor}
+                </div>
+              )
+            })}
+            </div>
+          )}
+        
+        {/* Mostrar características seleccionables activas */}
+        {linea.caracteristicasSeleccionables && 
+         Object.entries(linea.caracteristicasSeleccionables).filter(([_, { activada }]) => activada).length > 0 && (
+          <div className="ml-4 text-sm">
+            <span className="text-zinc-600 dark:text-zinc-400">Opciones incluidas:</span>
+            {Object.entries(linea.caracteristicasSeleccionables)
+              .filter(([_, { activada }]) => activada)
+              .map(([nombre, { valor, precio }]) => {
+                const label = productoConfig?.caracteristicasSeleccionables?.[nombre]?.label || nombre
+                return (
+                  <div key={nombre} className="text-green-600 dark:text-green-400">
+                    ✓ {label}: {valor}
+                    {precio !== undefined && precio > 0 && ` (+${precio}€)`}
+                </div>
+                )
+              })}
+            </div>
+          )}
+      </div>
+    )
   }
 
   return (
@@ -586,13 +1024,188 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
             </div>
           </div>
 
+          {/* Renderizar campos de características */}
           {productoSeleccionado && (
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h4 className="font-medium mb-3">Configuración de {productoSeleccionado.nombre}</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {Object.entries(dataService.getProductoCaracteristicas(productoSeleccionado.id)?.caracteristicas || {})
-                  .map(([key, config]) => renderizarCampoCaracteristica(key, config))}
-              </div>
+            <div className="space-y-6">
+              {/* Características Permanentes */}
+              <Fieldset>
+                <Legend>Características Permanentes</Legend>
+                <div className="space-y-4">
+                  {Object.entries(caracteristicasProducto)
+                    .filter(([nombre, _]) => {
+                      const producto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+                      return nombre in (producto?.caracteristicasPermanentes || {})
+                    })
+                    .map(([nombre, caracteristica]) => {
+                      const producto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+                      const config = producto?.caracteristicasPermanentes?.[nombre]
+                      if (!config) return null
+
+                      return (
+                        <Field key={nombre}>
+                        <Label>{config.label}</Label>
+                          {config.tipo === 'select' && config.opciones ? (
+                            <Listbox
+                              value={caracteristica.valor}
+                              onChange={(valor) => actualizarCaracteristica(nombre, valor)}
+                            >
+                              {config.opciones.map((opcion) => (
+                                <ListboxOption key={opcion} value={opcion}>
+                                  <ListboxLabel>{opcion}</ListboxLabel>
+                                </ListboxOption>
+                              ))}
+                            </Listbox>
+                          ) : (
+                            <Input
+                              type={config.tipo}
+                              value={caracteristica.valor}
+                              onChange={(e) => actualizarCaracteristica(nombre, e.target.value)}
+                              min={config.min}
+                              max={config.max}
+                            />
+                          )}
+                              </Field>
+                      )
+                    })}
+                </div>
+              </Fieldset>
+
+              {/* Características Seleccionables */}
+              <Fieldset>
+                <Legend>Características Seleccionables</Legend>
+                <div className="space-y-4">
+                  {productoSeleccionado && (
+                    <>
+                      {/* Componente para manejar las características seleccionables */}
+                      <CaracteristicasSeleccionables
+                        caracteristicas={dataService.getProductoCaracteristicas(productoSeleccionado.id)?.caracteristicasSeleccionables || {}}
+                        valores={caracteristicasProducto}
+                        onUpdate={(nombre, valor) => {
+                          setCaracteristicasProducto(prev => {
+                            const nuevasCaracteristicas = { ...prev, [nombre]: valor }
+                            
+                            // Recalcular precio total
+                            const configuracionProducto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+                            if (configuracionProducto) {
+                              const precioBase = configuracionProducto.precioBase || 0
+                              const precioCaracteristicas = Object.values(nuevasCaracteristicas)
+                                .reduce((total, caracteristica) => {
+                                  return total + (caracteristica.activada && caracteristica.precio ? caracteristica.precio : 0)
+                                }, 0)
+                              
+                              setNuevaLinea(prev => ({
+                                ...prev,
+                                precio: precioBase + precioCaracteristicas
+                              }))
+                            }
+                            
+                            return nuevasCaracteristicas
+                          })
+                        }}
+                      />
+                    </>
+                  )}
+                          </div>
+              </Fieldset>
+              
+              {/* Gestión de Características del Producto - Solo visible si queremos gestionar el producto */}
+              <details className="mt-6">
+                <summary className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100">
+                  ⚙️ Gestionar características del producto (avanzado)
+                </summary>
+                
+                <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                    Aquí puedes añadir, editar o eliminar las características disponibles para este producto. 
+                    Los cambios se aplicarán a todos los presupuestos futuros.
+                  </p>
+                  
+                  {/* Tabla para gestionar características */}
+                  <CaracteristicasTable
+                    caracteristicas={dataService.getProductoCaracteristicas(productoSeleccionado.id)?.caracteristicasSeleccionables || {}}
+                    onUpdate={async (nombre, caracteristica) => {
+                      const producto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+                      if (producto) {
+                        producto.caracteristicasSeleccionables = {
+                          ...producto.caracteristicasSeleccionables,
+                          [nombre]: caracteristica
+                        }
+                        const actualizado = await dataService.actualizarProductoCaracteristicas(productoSeleccionado.id, producto)
+                        if (actualizado) {
+                          // Si la característica existe en el estado actual, actualizar sus valores
+                          if (caracteristicasProducto[nombre]) {
+                            const primerOpcion = caracteristica.opciones && caracteristica.opciones.length > 0 
+                              ? caracteristica.opciones[0] 
+                              : null
+                            
+                            setCaracteristicasProducto(prev => ({
+                              ...prev,
+                              [nombre]: {
+                                valor: primerOpcion ? primerOpcion.valor : '',
+                                precio: caracteristica.incluyePrecio && primerOpcion ? primerOpcion.precio : undefined,
+                                activada: prev[nombre].activada
+                              }
+                            }))
+                          }
+                        }
+                      }
+                    }}
+                    onDelete={async (nombre) => {
+                      const producto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+                      if (producto && producto.caracteristicasSeleccionables) {
+                        const { [nombre]: _, ...resto } = producto.caracteristicasSeleccionables
+                        producto.caracteristicasSeleccionables = resto
+                        const actualizado = await dataService.actualizarProductoCaracteristicas(productoSeleccionado.id, producto)
+                        if (actualizado) {
+                          // Eliminar del estado local
+                          setCaracteristicasProducto(prev => {
+                            const { [nombre]: _, ...resto } = prev
+                            return resto
+                          })
+                        }
+                      }
+                    }}
+                  />
+                  
+                  <Button
+                    onClick={() => setMostrarModalNuevaCaracteristica(true)}
+                    className="mt-4"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Añadir Característica
+                  </Button>
+                </div>
+              </details>
+              
+              <NuevaCaracteristicaModal
+                abierto={mostrarModalNuevaCaracteristica}
+                onClose={() => setMostrarModalNuevaCaracteristica(false)}
+                onGuardar={async (nombre, caracteristica) => {
+                  const producto = dataService.getProductoCaracteristicas(productoSeleccionado.id)
+                  if (producto) {
+                    producto.caracteristicasSeleccionables = {
+                      ...producto.caracteristicasSeleccionables,
+                      [nombre]: caracteristica
+                    }
+                    const actualizado = await dataService.actualizarProductoCaracteristicas(productoSeleccionado.id, producto)
+                    if (actualizado) {
+                      // Añadir nueva característica al estado local
+                      const primerOpcion = caracteristica.opciones && caracteristica.opciones.length > 0 
+                        ? caracteristica.opciones[0] 
+                        : null
+                      
+                      setCaracteristicasProducto(prev => ({
+                        ...prev,
+                        [nombre]: {
+                          valor: primerOpcion ? primerOpcion.valor : '',
+                          precio: caracteristica.incluyePrecio && primerOpcion ? primerOpcion.precio : undefined,
+                          activada: caracteristica.activadaPorDefecto
+                        }
+                      }))
+                    }
+                  }
+                }}
+              />
             </div>
           )}
 
@@ -626,16 +1239,6 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">Descripción</label>
-              <Input 
-                type="text" 
-                placeholder="Describe el producto"
-                value={nuevaLinea.descripcion || ''}
-                onChange={(e) => setNuevaLinea({...nuevaLinea, descripcion: e.target.value})}
-              />
-            </div>
-            
-            <div>
               <label className="block text-sm font-medium mb-2">Referencia</label>
               <Input 
                 type="text" 
@@ -670,7 +1273,7 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
           <div className="flex gap-3">
             <Button 
               type="button"
-              onClick={() => lineaEditando ? actualizarLinea(lineaEditando) : crearProductoNuevo()}
+              onClick={() => lineaEditando ? actualizarLinea(lineaEditando) : agregarProductoPersonalizado()}
             >
               {lineaEditando ? 'Actualizar' : 'Crear'}
             </Button>
@@ -731,29 +1334,7 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {linea.tipo === 'nuevo' && (
-                        <SparklesIcon className="h-4 w-4 text-green-600" />
-                      )}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span>{linea.tipo === 'existente' ? linea.producto?.nombre : linea.descripcion}</span>
-                          {linea.referencia && (
-                            <span className="text-xs px-2 py-0.5 bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded">
-                              Ref: {linea.referencia}
-                            </span>
-                          )}
-                        </div>
-                        {linea.caracteristicas && (
-                          <div className="text-xs text-zinc-500 mt-1">
-                            {Object.entries(linea.caracteristicas)
-                              .filter(([_, value]) => value)
-                              .map(([key, value]) => `${key}: ${value}`)
-                              .join(' | ')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    {renderizarLinea(linea)}
                   </td>
                   <td className="px-4 py-3 text-center">{linea.cantidad}</td>
                   <td className="px-4 py-3 text-right">{linea.precio.toFixed(2)} €</td>
@@ -792,7 +1373,7 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
               <tr>
                 <td colSpan={4} className="px-4 py-3 text-right font-medium">Total:</td>
                 <td className="px-4 py-3 text-right font-bold text-lg">
-                  {lineas.reduce((sum, linea) => sum + (linea.cantidad * linea.precio), 0).toFixed(2)} €
+                  {totalPresupuesto.toFixed(2)} €
                 </td>
                 <td></td>
               </tr>
@@ -804,17 +1385,55 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
       {/* Botón para guardar presupuesto */}
       {lineas.length > 0 && (
         <div className="flex justify-end gap-3">
-          <Button 
-            onClick={() => router.push('/presupuestos/lista')} 
+          <Button
+            onClick={() => router.push('/presupuestos/lista')}
             className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
           >
             Cancelar
           </Button>
-          <Button onClick={guardarPresupuesto} className="bg-green-600 hover:bg-green-700">
-            {esEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto'}
+          <Button 
+            onClick={guardarPresupuesto}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {presupuestoInicial ? 'Actualizar Presupuesto' : 'Crear Presupuesto'}
           </Button>
         </div>
       )}
+
+      {/* Tabla de opciones globales */}
+      <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mt-6">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-medium">Opciones globales del presupuesto</h3>
+          <Button type="button" onClick={abrirModalNuevaOpcionGlobal}>Añadir opción</Button>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className="text-left px-2 py-1">Nombre</th>
+              <th className="text-left px-2 py-1">Descripción</th>
+              <th className="text-right px-2 py-1">Precio (€)</th>
+              <th className="text-center px-2 py-1">Activa</th>
+              <th className="text-center px-2 py-1">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {opcionesGlobales.map(opcion => (
+              <tr key={opcion.id}>
+                <td className="px-2 py-1">{opcion.nombre}</td>
+                <td className="px-2 py-1">{opcion.descripcion}</td>
+                <td className="px-2 py-1 text-right">{opcion.precio.toFixed(2)}</td>
+                <td className="px-2 py-1 text-center">
+                  <input type="checkbox" checked={opcion.activada} onChange={() => toggleOpcionGlobal(opcion.id)} />
+                </td>
+                <td className="px-2 py-1 text-center">
+                  <Button type="button" onClick={() => abrirModalEditarOpcionGlobal(opcion)}>Editar</Button>
+                  <Button type="button" className="ml-2 bg-red-500 hover:bg-red-600" onClick={() => eliminarOpcionGlobal(opcion.id)}>Eliminar</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Modal para crear cliente */}
       <Dialog open={mostrarModalCrearCliente} onClose={() => setMostrarModalCrearCliente(false)} size="2xl">
@@ -839,6 +1458,45 @@ export function PresupuestoForm({ presupuestoInicial }: PresupuestoFormProps) {
             Entendido
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Modal para añadir/editar opción global */}
+      <Dialog open={mostrarModalOpcionGlobal} onClose={() => setMostrarModalOpcionGlobal(false)} size="sm">
+        <DialogTitle>{opcionGlobalEditando ? 'Editar opción global' : 'Añadir opción global'}</DialogTitle>
+        <DialogBody>
+          <form onSubmit={e => {
+            e.preventDefault()
+            const form = e.target as any
+            const nombre = form.nombre.value.trim()
+            const descripcion = form.descripcion.value.trim()
+            const precio = parseFloat(form.precio.value)
+            if (!nombre || isNaN(precio)) return
+            guardarOpcionGlobal({
+              id: opcionGlobalEditando?.id || '',
+              nombre,
+              descripcion,
+              precio,
+              activada: opcionGlobalEditando?.activada ?? true
+            })
+          }} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Nombre</label>
+              <Input name="nombre" defaultValue={opcionGlobalEditando?.nombre || ''} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Descripción</label>
+              <Input name="descripcion" defaultValue={opcionGlobalEditando?.descripcion || ''} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Precio (€)</label>
+              <Input name="precio" type="number" min="0" step="0.01" defaultValue={opcionGlobalEditando?.precio || 0} required />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" onClick={() => setMostrarModalOpcionGlobal(false)} className="bg-zinc-200 hover:bg-zinc-300 text-zinc-900">Cancelar</Button>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">Guardar</Button>
+            </div>
+          </form>
+        </DialogBody>
       </Dialog>
     </div>
   )

@@ -1,28 +1,55 @@
-import productosCaracteristicas from '@/data/productos-caracteristicas.json'
+import productosCaracteristicas from '@/data/productos-caracteristicas'
+import type { OpcionGlobalPresupuesto } from '@/types/presupuesto'
 
-export type CaracteristicaProducto = {
+// Crear una copia tipada para evitar problemas de tipos
+const productosCaracteristicasData = productosCaracteristicas as Record<string, ProductoCaracteristicas>
+
+export type OpcionPrecio = {
+  valor: string
+  precio: number
+}
+
+export type CaracteristicaBase = {
   label: string
   tipo: 'select' | 'number' | 'text'
-  opciones?: string[]
   min?: number
   max?: number
 }
 
+export type CaracteristicaPermanente = CaracteristicaBase & {
+  opciones?: string[]
+}
+
+export type CaracteristicaSeleccionable = CaracteristicaBase & {
+  opciones?: OpcionPrecio[]
+  incluyePrecio: boolean
+  precioBase: number
+  activadaPorDefecto: boolean
+}
+
 export type ProductoCaracteristicas = {
   nombre: string
-  caracteristicas: Record<string, CaracteristicaProducto>
+  caracteristicasPermanentes: Record<string, CaracteristicaPermanente>
+  caracteristicasSeleccionables: Record<string, CaracteristicaSeleccionable>
+  precioBase?: number
+}
+
+export type CaracteristicaValor = {
+  valor: any
+  precio?: number
+  activada?: boolean
 }
 
 export type LineaPresupuesto = {
   id: string
-  tipo: 'existente' | 'nuevo'
-  producto?: {
+  tipo: 'existente' | 'personalizado'
+  producto: {
     id: string
     nombre: string
   }
-  descripcion?: string
   referencia?: string
-  caracteristicas?: Record<string, any>
+  caracteristicasPermanentes: Record<string, CaracteristicaValor>
+  caracteristicasSeleccionables: Record<string, CaracteristicaValor>
   cantidad: number
   precio: number
 }
@@ -50,22 +77,122 @@ export type Presupuesto = {
   total: number
   estado: 'borrador' | 'enviado' | 'aceptado' | 'rechazado'
   versiones?: Presupuesto[] // Histórico de versiones anteriores
+  opcionesGlobales?: OpcionGlobalPresupuesto[]
 }
 
 class DataService {
+  // ========== GESTIÓN DE PRODUCTOS ==========
   // Obtener características de un producto
   getProductoCaracteristicas(productoId: string): ProductoCaracteristicas | null {
-    const productos = productosCaracteristicas as Record<string, ProductoCaracteristicas>
-    return productos[productoId] || null
+    const producto = productosCaracteristicasData[productoId]
+    if (!producto) return null
+
+    // Asegurarse de que las características tengan los valores por defecto necesarios
+    const caracteristicasSeleccionables: Record<string, CaracteristicaSeleccionable> = {}
+    Object.entries(producto.caracteristicasSeleccionables || {}).forEach(([nombre, caracteristica]) => {
+      caracteristicasSeleccionables[nombre] = {
+        ...caracteristica,
+        incluyePrecio: caracteristica.incluyePrecio ?? false,
+        precioBase: caracteristica.precioBase ?? 0,
+        activadaPorDefecto: caracteristica.activadaPorDefecto ?? false
+      } as CaracteristicaSeleccionable
+    })
+
+      return {
+      ...producto,
+      caracteristicasSeleccionables
+    }
   }
 
   // Obtener todos los productos disponibles
   getProductosDisponibles() {
-    const productos = productosCaracteristicas as Record<string, ProductoCaracteristicas>
-    return Object.entries(productos).map(([id, data]) => ({
+    return Object.entries(productosCaracteristicasData).map(([id, data]) => ({
       id,
       nombre: data.nombre
     }))
+  }
+
+  // Crear nuevo producto
+  async crearProducto(
+    nombre: string, 
+    datos: {
+      caracteristicasPermanentes: Record<string, CaracteristicaPermanente>
+      caracteristicasSeleccionables: Record<string, CaracteristicaSeleccionable>
+      precioBase?: number
+    }
+  ) {
+    try {
+      const response = await fetch('/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          nombre, 
+          caracteristicasPermanentes: datos.caracteristicasPermanentes,
+          caracteristicasSeleccionables: datos.caracteristicasSeleccionables,
+          precioBase: datos.precioBase
+        })
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al crear producto')
+      }
+      
+      const data = await response.json()
+      return data.producto
+    } catch (error) {
+      console.error('Error al crear producto:', error)
+      throw error
+    }
+  }
+
+  // Actualizar producto existente
+  async actualizarProducto(
+    id: string, 
+    datos: { 
+      nombre?: string
+      caracteristicasPermanentes?: Record<string, CaracteristicaPermanente>
+      caracteristicasSeleccionables?: Record<string, CaracteristicaSeleccionable>
+      precioBase?: number
+    }
+  ) {
+    try {
+      const response = await fetch('/api/productos', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...datos })
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al actualizar producto')
+      }
+      
+      const data = await response.json()
+      return data.producto
+    } catch (error) {
+      console.error('Error al actualizar producto:', error)
+      throw error
+    }
+  }
+
+  // Eliminar producto
+  async eliminarProducto(id: string) {
+    try {
+      const response = await fetch(`/api/productos?id=${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al eliminar producto')
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Error al eliminar producto:', error)
+      throw error
+    }
   }
 
   // ========== GESTIÓN DE CLIENTES ==========
@@ -139,9 +266,11 @@ class DataService {
   // ========== GESTIÓN DE PRESUPUESTOS ==========
   async getPresupuestos(): Promise<Presupuesto[]> {
     try {
+      console.log('Obteniendo todos los presupuestos...');
       const response = await fetch('/api/presupuestos')
       if (response.ok) {
         const data = await response.json()
+        console.log('Presupuestos obtenidos:', data.presupuestos);
         return data.presupuestos
       }
     } catch (error) {
@@ -152,38 +281,45 @@ class DataService {
 
   async getPresupuesto(id: string): Promise<Presupuesto | null> {
     try {
+      console.log('Buscando presupuesto con ID:', id);
       const presupuestos = await this.getPresupuestos()
-      return presupuestos.find(p => p.id === id) || null
+      const presupuesto = presupuestos.find(p => p.id === id)
+      console.log('Presupuesto encontrado:', presupuesto);
+      return presupuesto || null
     } catch (error) {
       console.error('Error al obtener presupuesto:', error)
     }
     return null
   }
 
-  // Generar número de presupuesto: AÑO + número de 4 dígitos empezando desde 635
-  async generarNumeroPresupuesto(): Promise<string> {
-    const presupuestos = await this.getPresupuestos()
-    const year = new Date().getFullYear()
-    const presupuestosDelAnio = presupuestos.filter(p => p.numero && p.numero.startsWith(year.toString()))
-    
-    const numeroInicial = 635
-    
-    if (presupuestosDelAnio.length === 0) {
-      return `${year}${numeroInicial.toString().padStart(4, '0')}`
-    }
-    
-    const maxNum = Math.max(...presupuestosDelAnio.map(p => parseInt(p.numero.slice(4)) || 0))
-    const siguiente = (maxNum + 1).toString().padStart(4, '0')
-    return `${year}${siguiente}`
-  }
-
-  // Obtener el siguiente número de presupuesto (sin guardar)
   async obtenerSiguienteNumero(): Promise<string> {
-    return this.generarNumeroPresupuesto()
+    try {
+      const presupuestos = await this.getPresupuestos()
+      const año = new Date().getFullYear()
+      
+      // Filtrar presupuestos del año actual
+      const presupuestosAñoActual = presupuestos.filter(p => p.numero.startsWith(año.toString()))
+      
+      if (presupuestosAñoActual.length === 0) {
+        // Si no hay presupuestos este año, empezar desde 635
+        return `${año}0635`
+      }
+      
+      // Encontrar el número más alto
+      const numeros = presupuestosAñoActual.map(p => parseInt(p.numero.slice(-4)))
+      const ultimoNumero = Math.max(...numeros)
+      
+      // Incrementar en 1
+      const siguienteNumero = ultimoNumero + 1
+      return `${año}${siguienteNumero.toString().padStart(4, '0')}`
+    } catch (error) {
+      console.error('Error al obtener siguiente número:', error)
+      throw error
+    }
   }
 
   async guardarPresupuesto(presupuesto: Omit<Presupuesto, 'id' | 'fecha' | 'numero' | 'version' | 'versiones'> & { numero?: string }): Promise<Presupuesto> {
-    const numero = presupuesto.numero || await this.generarNumeroPresupuesto()
+    const numero = presupuesto.numero || await this.obtenerSiguienteNumero()
     const nuevoPresupuesto: Presupuesto = {
       ...presupuesto,
       id: Date.now().toString(),
@@ -209,78 +345,9 @@ class DataService {
     throw new Error('No se pudo guardar el presupuesto')
   }
 
-  async crearNuevaVersionPresupuesto(id: string): Promise<Presupuesto | null> {
-    const presupuestos = await this.getPresupuestos()
-    const presupuestoActual = presupuestos.find(p => p.id === id)
-    if (!presupuestoActual) return null
-    
-    const { versiones, ...versionAnteriorSinVersiones } = presupuestoActual
-    const nuevasVersiones = [...(versiones || []), versionAnteriorSinVersiones]
-    
-    const nuevaVersion: Presupuesto = {
-      ...presupuestoActual,
-      id: Date.now().toString(), // Nuevo ID para la nueva versión
-      version: (presupuestoActual.version || 1) + 1,
-      fecha: new Date().toISOString(),
-      estado: 'borrador',
-      versiones: nuevasVersiones
-    }
-
-    try {
-      const response = await fetch('/api/presupuestos', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevaVersion) // Enviar la nueva versión completa para actualizar
-      })
-      if (response.ok) {
-        const data = await response.json()
-        return data.presupuesto
-      }
-    } catch (error) {
-      console.error('Error al crear nueva versión:', error)
-    }
-    return null
-  }
-
-  async restaurarVersionPresupuesto(idPresupuesto: string, numeroVersionRestaurar: number): Promise<Presupuesto | null> {
-    const presupuestos = await this.getPresupuestos()
-    const presupuestoBase = presupuestos.find(p => p.id === idPresupuesto)
-    if (!presupuestoBase) return null
-
-    const versionARestaurar = presupuestoBase.versiones?.find(v => v.version === numeroVersionRestaurar)
-    if (!versionARestaurar) return null
-
-    const { versiones, ...versionActualSinVersiones } = presupuestoBase
-    const nuevasVersionesHistoricas = [...(versiones || []), versionActualSinVersiones]
-
-    const versionRestaurada: Presupuesto = {
-        ...versionARestaurar,
-        id: Date.now().toString(), // Nuevo ID para la "nueva" versión actual
-        numero: presupuestoBase.numero, // Mantiene el número del presupuesto original
-        version: (presupuestoBase.version || 1) + 1, // Nueva versión principal
-        fecha: new Date().toISOString(),
-        estado: 'borrador',
-        versiones: nuevasVersionesHistoricas
-    }
-
-    try {
-      const response = await fetch('/api/presupuestos', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(versionRestaurada) // Enviar la versión restaurada para actualizar
-      });
-      if (response.ok) {
-        const data = await response.json();
-        return data.presupuesto;
-      }
-    } catch (error) {
-      console.error('Error al restaurar versión:', error);
-    }
-    return null;
-  }
-  
   async actualizarPresupuesto(id: string, datos: Partial<Presupuesto>): Promise<Presupuesto | null> {
     try {
+      console.log('Actualizando presupuesto:', { id, datos });
       const response = await fetch('/api/presupuestos', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -288,6 +355,7 @@ class DataService {
       })
       if (response.ok) {
         const data = await response.json()
+        console.log('Presupuesto actualizado:', data.presupuesto);
         return data.presupuesto
       }
     } catch (error) {
@@ -304,6 +372,66 @@ class DataService {
       console.error('Error al eliminar presupuesto:', error)
     }
     return false
+  }
+
+  async crearNuevaVersionPresupuesto(id: string): Promise<Presupuesto | null> {
+    try {
+      console.log('Creando nueva versión para presupuesto:', id)
+      // Obtener el presupuesto actual
+      const presupuestoActual = await this.getPresupuesto(id)
+      if (!presupuestoActual) {
+        console.error('No se encontró el presupuesto original')
+        return null
+      }
+
+      // Crear una copia del presupuesto actual
+      const nuevaVersion: Presupuesto = {
+        ...presupuestoActual,
+        version: (presupuestoActual.version || 1) + 1,
+        fecha: new Date().toISOString(),
+        estado: 'borrador'
+      }
+
+      // Guardar la versión actual en el histórico
+      const versiones = presupuestoActual.versiones || []
+      const presupuestoActualizado = {
+        ...presupuestoActual,
+        versiones: [...versiones, { ...presupuestoActual, versiones: [] }]
+      }
+
+      // Actualizar el presupuesto con la nueva versión
+      const presupuestoFinal = await this.actualizarPresupuesto(id, presupuestoActualizado)
+      if (!presupuestoFinal) {
+        console.error('Error al actualizar el presupuesto con la nueva versión')
+        return null
+      }
+
+      console.log('Nueva versión creada:', nuevaVersion)
+      return nuevaVersion
+    } catch (error) {
+      console.error('Error al crear nueva versión:', error)
+      return null
+    }
+  }
+
+  // Añadir método para actualizar características de un producto
+  async actualizarProductoCaracteristicas(productoId: string, caracteristicas: ProductoCaracteristicas): Promise<boolean> {
+    try {
+      const response = await fetch('/api/productos', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: productoId,
+          caracteristicasPermanentes: caracteristicas.caracteristicasPermanentes,
+          caracteristicasSeleccionables: caracteristicas.caracteristicasSeleccionables
+        })
+      })
+      
+      return response.ok
+    } catch (error) {
+      console.error('Error al actualizar características del producto:', error)
+      return false
+    }
   }
 }
 

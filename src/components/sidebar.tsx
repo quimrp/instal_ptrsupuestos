@@ -44,6 +44,7 @@ import {
   Square2StackIcon,
   TicketIcon,
   UsersIcon,
+  CubeIcon
 } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 import { Fragment, useState } from 'react'
@@ -57,6 +58,10 @@ const presupuestosSubmenu = [
 
 const clientesSubmenu = [
   { href: '/clientes/nuevo', label: 'Nuevo Cliente' },
+]
+
+const productosSubmenu = [
+  { href: '/dashboard/productos', label: 'Gestionar Productos' },
 ]
 
 export function Example({ children }: { children?: React.ReactNode }) {
@@ -90,22 +95,13 @@ export function Example({ children }: { children?: React.ReactNode }) {
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-in-out duration-300"
-                  enterFrom="opacity-0"
-                  enterTo="opacity-100"
-                  leave="ease-in-out duration-300"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-                    <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
-                      <span className="sr-only">Close sidebar</span>
-                      <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                    </button>
-                  </div>
-                </Transition.Child>
+                <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+                  <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
+                    <span className="sr-only">Close sidebar</span>
+                    <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                  </button>
+                </div>
+
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center">
                     <img className="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" />
@@ -170,6 +166,42 @@ export function Example({ children }: { children?: React.ReactNode }) {
                                 </div>
                                 <Disclosure.Panel className="mt-1 space-y-1">
                                   {clientesSubmenu.map((item) => (
+                                    <SidebarItem
+                                      key={item.href}
+                                      href={item.href}
+                                      current={pathname === item.href}
+                                      className="pl-8"
+                                    >
+                                      <SidebarLabel>{item.label}</SidebarLabel>
+                                    </SidebarItem>
+                                  ))}
+                                </Disclosure.Panel>
+                              </>
+                            )}
+                          </Disclosure>
+
+                          <Disclosure as="div" defaultOpen={pathname.startsWith('/dashboard/productos')}>
+                            {({ open }) => (
+                              <>
+                                <div className="flex items-center">
+                                  <SidebarItem 
+                                    href="/dashboard/productos" 
+                                    current={pathname === '/dashboard/productos'}
+                                    className="flex-1"
+                                  >
+                                    <CubeIcon className="h-5 w-5 mr-2" />
+                                    <SidebarLabel>Productos</SidebarLabel>
+                                  </SidebarItem>
+                                  <Disclosure.Button className="p-1.5 hover:bg-zinc-100 rounded">
+                                    {open ? (
+                                      <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+                                    ) : (
+                                      <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                                    )}
+                                  </Disclosure.Button>
+                                </div>
+                                <Disclosure.Panel className="mt-1 space-y-1">
+                                  {productosSubmenu.map((item) => (
                                     <SidebarItem
                                       key={item.href}
                                       href={item.href}
@@ -258,7 +290,7 @@ export function Example({ children }: { children?: React.ReactNode }) {
                               className="pl-8"
                             >
                               <SidebarLabel>{item.label}</SidebarLabel>
-              </SidebarItem>
+                            </SidebarItem>
                           ))}
                         </Disclosure.Panel>
                       </>
@@ -275,7 +307,7 @@ export function Example({ children }: { children?: React.ReactNode }) {
                             className="flex-1"
                           >
                             <SidebarLabel>Clientes</SidebarLabel>
-              </SidebarItem>
+                          </SidebarItem>
                           <Disclosure.Button className="p-1.5 hover:bg-zinc-100 rounded">
                             {open ? (
                               <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
@@ -293,7 +325,43 @@ export function Example({ children }: { children?: React.ReactNode }) {
                               className="pl-8"
                             >
                               <SidebarLabel>{item.label}</SidebarLabel>
-              </SidebarItem>
+                            </SidebarItem>
+                          ))}
+                        </Disclosure.Panel>
+                      </>
+                    )}
+                  </Disclosure>
+
+                  <Disclosure as="div" defaultOpen={pathname.startsWith('/dashboard/productos')}>
+                    {({ open }) => (
+                      <>
+                        <div className="flex items-center">
+                          <SidebarItem 
+                            href="/dashboard/productos" 
+                            current={pathname === '/dashboard/productos'}
+                            className="flex-1"
+                          >
+                            <CubeIcon className="h-5 w-5 mr-2" />
+                            <SidebarLabel>Productos</SidebarLabel>
+                          </SidebarItem>
+                          <Disclosure.Button className="p-1.5 hover:bg-zinc-100 rounded">
+                            {open ? (
+                              <ChevronUpIcon className="h-5 w-5" aria-hidden="true" />
+                            ) : (
+                              <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                            )}
+                          </Disclosure.Button>
+                        </div>
+                        <Disclosure.Panel className="mt-1 space-y-1">
+                          {productosSubmenu.map((item) => (
+                            <SidebarItem
+                              key={item.href}
+                              href={item.href}
+                              current={pathname === item.href}
+                              className="pl-8"
+                            >
+                              <SidebarLabel>{item.label}</SidebarLabel>
+                            </SidebarItem>
                           ))}
                         </Disclosure.Panel>
                       </>
@@ -302,16 +370,16 @@ export function Example({ children }: { children?: React.ReactNode }) {
                   
                   <SidebarItem href="/events" current={pathname === '/events'}>
                     <SidebarLabel>Eventos</SidebarLabel>
-              </SidebarItem>
+                  </SidebarItem>
                   <SidebarItem href="/orders" current={pathname === '/orders'}>
                     <SidebarLabel>Pedidos</SidebarLabel>
-              </SidebarItem>
+                  </SidebarItem>
                   <SidebarItem href="/settings" current={pathname === '/settings'}>
                     <SidebarLabel>Configuración</SidebarLabel>
-              </SidebarItem>
+                  </SidebarItem>
                   <SidebarItem href="/broadcasts" current={pathname === '/broadcasts'}>
                     <SidebarLabel>Transmisiones</SidebarLabel>
-              </SidebarItem>
+                  </SidebarItem>
                 </ul>
               </li>
               <li>
@@ -319,13 +387,13 @@ export function Example({ children }: { children?: React.ReactNode }) {
                 <ul role="list" className="-mx-2 mt-2 space-y-1">
                   <SidebarItem href="/events/upcoming" current={pathname === '/events/upcoming'}>
                     <SidebarLabel>Próximos eventos</SidebarLabel>
-              </SidebarItem>
+                  </SidebarItem>
                 </ul>
               </li>
               <li className="mt-auto">
                 <SidebarItem href="/profile" current={pathname === '/profile'}>
                   <SidebarLabel>Tu perfil</SidebarLabel>
-              </SidebarItem>
+                </SidebarItem>
               </li>
             </ul>
           </nav>
@@ -366,9 +434,7 @@ export function Example({ children }: { children?: React.ReactNode }) {
         </div>
 
         <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>

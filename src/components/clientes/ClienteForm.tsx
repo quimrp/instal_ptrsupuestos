@@ -31,10 +31,7 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
     nombre: clienteInicial?.nombre || '',
     apellidos: clienteInicial?.apellidos || '',
     nif: clienteInicial?.nif || '',
-    calle: clienteInicial?.calle || '',
-    poblacion: clienteInicial?.poblacion || '',
-    codigoPostal: clienteInicial?.codigoPostal || '',
-    provincia: clienteInicial?.provincia || '',
+    direccion: clienteInicial?.direccion || '',
     telefono: clienteInicial?.telefono || '',
     email: clienteInicial?.email || '',
     tipoCliente: (clienteInicial?.tipoCliente || 'particular') as TipoCliente
@@ -67,20 +64,8 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
       nuevosErrores.nif = 'El NIF/CIF no es válido'
     }
     
-    if (!formData.calle.trim()) {
-      nuevosErrores.calle = 'La calle es obligatoria'
-    }
-    
-    if (!formData.poblacion.trim()) {
-      nuevosErrores.poblacion = 'La población es obligatoria'
-    }
-    
-    if (!formData.codigoPostal.trim()) {
-      nuevosErrores.codigoPostal = 'El código postal es obligatorio'
-    }
-    
-    if (!formData.provincia.trim()) {
-      nuevosErrores.provincia = 'La provincia es obligatoria'
+    if (!formData.direccion.trim()) {
+      nuevosErrores.direccion = 'La dirección es obligatoria'
     }
     
     if (!formData.telefono.trim()) {
@@ -130,10 +115,7 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
         nombre: formData.nombre.trim(),
         apellidos: formData.tipoCliente === 'empresa' ? '' : formData.apellidos.trim(),
         nif: formData.nif.trim().toUpperCase(),
-        calle: formData.calle.trim(),
-        poblacion: formData.poblacion.trim(),
-        codigoPostal: formData.codigoPostal.trim(),
-        provincia: formData.provincia.trim(),
+        direccion: formData.direccion.trim(),
         telefono: formData.telefono.trim(),
         email: formData.email.trim().toLowerCase(),
         tipoCliente: formData.tipoCliente
@@ -200,7 +182,6 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-                  invalid={!!errors.nombre}
                   placeholder={formData.tipoCliente === 'empresa' ? 'Ej: Construcciones ABC S.L.' : 'Ej: Juan'}
                 />
                 {errors.nombre && (
@@ -215,7 +196,6 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
                     type="text"
                     value={formData.apellidos}
                     onChange={(e) => setFormData({...formData, apellidos: e.target.value})}
-                    invalid={!!errors.apellidos}
                     placeholder="Ej: García López"
                   />
                   {errors.apellidos && (
@@ -236,7 +216,6 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
                   type="text"
                   value={formData.nif}
                   onChange={(e) => setFormData({...formData, nif: e.target.value.toUpperCase()})}
-                  invalid={!!errors.nif}
                   placeholder={formData.tipoCliente === 'empresa' ? 'Ej: B12345678' : 'Ej: 12345678A'}
                   maxLength={9}
                 />
@@ -252,7 +231,6 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
                   type="tel"
                   value={formData.telefono}
                   onChange={(e) => setFormData({...formData, telefono: e.target.value})}
-                  invalid={!!errors.telefono}
                   placeholder="Ej: 666123456"
                   maxLength={9}
                 />
@@ -270,7 +248,6 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                invalid={!!errors.email}
                 placeholder="Ej: cliente@email.com"
               />
               {errors.email && (
@@ -282,60 +259,18 @@ export function ClienteForm({ clienteInicial }: ClienteFormProps) {
         
         <Fieldset>
           <Legend>Dirección</Legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Field>
-              <Label>Calle *</Label>
-              <Input
-                type="text"
-                value={formData.calle}
-                onChange={(e) => setFormData({...formData, calle: e.target.value})}
-                invalid={!!errors.calle}
-                placeholder="Ej: Calle Mayor 123"
-              />
-              {errors.calle && (
-                <ErrorMessage>{errors.calle}</ErrorMessage>
-              )}
-            </Field>
-            <Field>
-              <Label>Población *</Label>
-              <Input
-                type="text"
-                value={formData.poblacion}
-                onChange={(e) => setFormData({...formData, poblacion: e.target.value})}
-                invalid={!!errors.poblacion}
-                placeholder="Ej: Madrid"
-              />
-              {errors.poblacion && (
-                <ErrorMessage>{errors.poblacion}</ErrorMessage>
-              )}
-            </Field>
-            <Field>
-              <Label>Código Postal *</Label>
-              <Input
-                type="text"
-                value={formData.codigoPostal}
-                onChange={(e) => setFormData({...formData, codigoPostal: e.target.value})}
-                invalid={!!errors.codigoPostal}
-                placeholder="Ej: 28001"
-              />
-              {errors.codigoPostal && (
-                <ErrorMessage>{errors.codigoPostal}</ErrorMessage>
-              )}
-            </Field>
-            <Field>
-              <Label>Provincia *</Label>
-              <Input
-                type="text"
-                value={formData.provincia}
-                onChange={(e) => setFormData({...formData, provincia: e.target.value})}
-                invalid={!!errors.provincia}
-                placeholder="Ej: Madrid"
-              />
-              {errors.provincia && (
-                <ErrorMessage>{errors.provincia}</ErrorMessage>
-              )}
-            </Field>
-          </div>
+          <Field>
+            <Label>Dirección completa *</Label>
+            <Input
+              type="text"
+              value={formData.direccion}
+              onChange={(e) => setFormData({...formData, direccion: e.target.value})}
+              placeholder="Ej: Calle Mayor 123, 28001 Madrid, Madrid"
+            />
+            {errors.direccion && (
+              <ErrorMessage>{errors.direccion}</ErrorMessage>
+            )}
+          </Field>
         </Fieldset>
         
         {/* Botones */}

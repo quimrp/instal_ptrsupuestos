@@ -1,8 +1,12 @@
 {
   "presupuestos": [
     {
+      "id": "1748856453157",
+      "numero": "20250635",
+      "version": 1,
+      "fecha": "2025-01-15T10:30:00.000Z",
       "clienteId": "2",
-      "cliente": "María Martínez Sánchez",
+      "cliente": "María",
       "datosCliente": {
         "id": "2",
         "nombre": "María",
@@ -15,36 +19,70 @@
       },
       "lineas": [
         {
-          "id": "1748725764740",
+          "id": "1748856453158",
           "tipo": "existente",
           "producto": {
             "id": "ventana",
             "nombre": "Ventana"
           },
-          "referencia": "",
-          "caracteristicas": {
-            "marca": "Cortizo",
-            "perfileria": "RPT",
-            "serie": "Serie 60",
-            "color": "Blanco",
-            "persiana": "Sin persiana",
-            "ancho": 300,
-            "alto": 300,
-            "apertura": "Practicable"
+          "referencia": "V-001",
+          "caracteristicasPermanentes": {
+            "marca": {
+              "valor": "Cortizo",
+              "activada": true
+            },
+            "serie": {
+              "valor": "Serie 60",
+              "activada": true
+            },
+            "ancho": {
+              "valor": 500,
+              "activada": true
+            },
+            "alto": {
+              "valor": 500,
+              "activada": true
+            }
           },
-          "cantidad": 1,
-          "precio": 7777
+          "caracteristicasSeleccionables": {
+            "persiana": {
+              "valor": "Persiana Motorizada",
+              "activada": true,
+              "precio": 450
+            },
+            "apertura": {
+              "valor": "Corredera",
+              "activada": true,
+              "precio": 80
+            },
+            "cristal": {
+              "valor": "Triple",
+              "activada": true,
+              "precio": 180
+            }
+          },
+          "cantidad": 2,
+          "precio": 1010
         }
       ],
-      "total": 7777,
-      "estado": "borrador",
-      "numero": "20250635",
-      "id": "1748725765973",
-      "version": 1,
-      "fecha": "2025-05-31T21:09:25.973Z",
-      "versiones": []
+      "total": 2419,
+      "estado": "enviado",
+      "versiones": [],
+      "opcionesGlobales": [
+        {
+          "id": "1748948418895",
+          "nombre": "tratamiento solar",
+          "descripcion": "tratmiento soloar",
+          "precio": 399,
+          "activada": true
+        }
+      ]
     },
     {
+      "id": "1748856453159",
+      "numero": "20250636",
+      "version": 1,
+      "fecha": "2025-01-16T14:20:00.000Z",
       "clienteId": "3",
       "cliente": "Construcciones ABC S.L.",
       "datosCliente": {
@@ -59,179 +97,176 @@
       },
       "lineas": [
         {
-          "id": "1748725875064",
+          "id": "1748856453160",
           "tipo": "existente",
           "producto": {
             "id": "mampara",
             "nombre": "Mampara"
           },
-          "referencia": "",
-          "caracteristicas": {
-            "tipo": "Frontal",
-            "cristal": "Transparente",
-            "espesor": "6mm",
-            "perfileria": "Cromo",
-            "ancho": 600,
-            "alto": 1800
+          "referencia": "MP-HOTEL-01",
+          "caracteristicasPermanentes": {
+            "tipo": {
+              "valor": "Angular",
+              "activada": true
+            },
+            "ancho": {
+              "valor": 900,
+              "activada": true
+            },
+            "alto": {
+              "valor": 1950,
+              "activada": true
+            }
           },
-          "cantidad": 1,
-          "precio": 0
-        }
-      ],
-      "total": 0,
-      "estado": "borrador",
-      "numero": "20250636",
-      "id": "1748725878543",
-      "version": 1,
-      "fecha": "2025-05-31T21:11:18.543Z",
-      "versiones": []
-    },
-    {
-      "clienteId": "8",
-      "cliente": "Inmobiliaria Costa Dorada S.A.",
-      "datosCliente": {
-        "id": "8",
-        "nombre": "Inmobiliaria Costa Dorada S.A.",
-        "apellidos": "",
-        "nif": "A11223344",
-        "direccion": "Paseo Marítimo 100, 43001 Tarragona",
-        "telefono": "977123456",
-        "email": "info@costadorada.com",
-        "tipoCliente": "empresa"
-      },
-      "lineas": [
+          "caracteristicasSeleccionables": {
+            "cristal": {
+              "valor": "Serigrafiado",
+              "precio": 80,
+              "activada": true
+            },
+            "tratamiento": {
+              "valor": "Tratamiento antical",
+              "precio": 60,
+              "activada": true
+            },
+            "perfileria": {
+              "valor": "Negro mate",
+              "precio": 45,
+              "activada": true
+            }
+          },
+          "cantidad": 10,
+          "precio": 535
+        },
         {
-          "id": "1748725904030",
-          "tipo": "existente",
-          "producto": {
-            "id": "mampara",
-            "nombre": "Mampara"
-          },
-          "referencia": "",
-          "caracteristicas": {
-            "tipo": "Frontal",
-            "cristal": "Transparente",
-            "espesor": "6mm",
-            "perfileria": "Cromo",
-            "ancho": 600,
-            "alto": 1800
-          },
-          "cantidad": 1,
-          "precio": 777
-        }
-      ],
-      "total": 777,
-      "estado": "borrador",
-      "numero": "20250637",
-      "id": "1748725905682",
-      "version": 1,
-      "fecha": "2025-05-31T21:11:45.682Z",
-      "versiones": []
-    },
-    {
-      "clienteId": "8",
-      "cliente": "Inmobiliaria Costa Dorada S.A.",
-      "datosCliente": {
-        "id": "8",
-        "nombre": "Inmobiliaria Costa Dorada S.A.",
-        "apellidos": "",
-        "nif": "A11223344",
-        "direccion": "Paseo Marítimo 100, 43001 Tarragona",
-        "telefono": "977123456",
-        "email": "info@costadorada.com",
-        "tipoCliente": "empresa"
-      },
-      "lineas": [
-        {
-          "id": "1748726252441",
+          "id": "1748856453161",
           "tipo": "existente",
           "producto": {
             "id": "puerta",
             "nombre": "Puerta"
           },
-          "referencia": "",
-          "caracteristicas": {
-            "material": "Madera maciza",
-            "tipo": "Abatible",
-            "acabado": "Lacado blanco",
-            "manilla": "Roseta",
-            "ancho": 600,
-            "alto": 1900
+          "referencia": "P-HOTEL-01",
+          "caracteristicasPermanentes": {
+            "material": {
+              "valor": "MDF lacado",
+              "activada": true
+            },
+            "ancho": {
+              "valor": 825,
+              "activada": true
+            },
+            "alto": {
+              "valor": 2100,
+              "activada": true
+            }
           },
-          "cantidad": 1,
-          "precio": 0
-        },
-        {
-          "id": "1748726259580",
-          "tipo": "existente",
-          "producto": {
-            "id": "mampara",
-            "nombre": "Mampara"
+          "caracteristicasSeleccionables": {
+            "manilla": {
+              "valor": "Manilla roseta",
+              "precio": 45,
+              "activada": true
+            },
+            "cerradura": {
+              "valor": "Estándar",
+              "precio": 0,
+              "activada": false
+            }
           },
-          "referencia": "",
-          "caracteristicas": {
-            "tipo": "Frontal",
-            "cristal": "Transparente",
-            "espesor": "6mm",
-            "perfileria": "Cromo",
-            "ancho": 600,
-            "alto": 1800
-          },
-          "cantidad": 1,
-          "precio": 0
+          "cantidad": 15,
+          "precio": 495
         }
       ],
-      "total": 0,
-      "estado": "borrador",
-      "numero": "20250638",
-      "id": "1748726262719",
-      "version": 1,
-      "fecha": "2025-05-31T21:17:42.719Z",
+      "total": 12775,
+      "estado": "aceptado",
       "versiones": []
     },
     {
-      "clienteId": "3",
-      "cliente": "Construcciones ABC S.L.",
+      "id": "1748856453162",
+      "numero": "20250637",
+      "version": 2,
+      "fecha": "2025-01-18T09:45:00.000Z",
+      "clienteId": "8",
+      "cliente": "Inmobiliaria Costa Dorada S.A.",
       "datosCliente": {
-        "id": "3",
-        "nombre": "Construcciones ABC S.L.",
+        "id": "8",
+        "nombre": "Inmobiliaria Costa Dorada S.A.",
         "apellidos": "",
-        "nif": "B12345678",
-        "direccion": "Polígono Industrial Norte, Nave 12, 46001 Valencia",
-        "telefono": "961234567",
-        "email": "info@construccionesabc.com",
+        "nif": "A11223344",
+        "direccion": "Paseo Marítimo 100, 43001 Tarragona",
+        "telefono": "977123456",
+        "email": "info@costadorada.com",
         "tipoCliente": "empresa"
       },
       "lineas": [
         {
-          "id": "1748726461479",
+          "id": "1748856453163",
           "tipo": "existente",
           "producto": {
-            "id": "mampara",
-            "nombre": "Mampara"
+            "id": "toldo",
+            "nombre": "Toldo"
           },
-          "referencia": "",
-          "caracteristicas": {
-            "tipo": "Frontal",
-            "cristal": "Transparente",
-            "espesor": "6mm",
-            "perfileria": "Cromo",
-            "ancho": 600,
-            "alto": 1800
+          "referencia": "TLD-TERRAZA-01",
+          "caracteristicasPermanentes": {
+            "modelo": {
+              "valor": "Cofre",
+              "activada": true
+            },
+            "ancho": {
+              "valor": 4500,
+              "activada": true
+            },
+            "salida": {
+              "valor": 3000,
+              "activada": true
+            }
           },
-          "cantidad": 1,
-          "precio": 0
+          "caracteristicasSeleccionables": {
+            "motor": {
+              "valor": "Motor con mando",
+              "precio": 320,
+              "activada": true
+            },
+            "sensor": {
+              "valor": "Sensor viento + sol",
+              "precio": 220,
+              "activada": true
+            }
+          },
+          "cantidad": 3,
+          "precio": 740
         }
       ],
-      "total": 0,
+      "total": 2220,
       "estado": "borrador",
-      "numero": "20250639",
-      "id": "1748726463889",
-      "version": 1,
-      "fecha": "2025-05-31T21:21:03.889Z",
-      "versiones": []
+      "versiones": [
+        {
+          "id": "1748856453162",
+          "numero": "20250637",
+          "version": 1,
+          "fecha": "2025-01-17T16:30:00.000Z",
+          "clienteId": "8",
+          "lineas": [
+            {
+              "id": "1748856453163",
+              "tipo": "existente",
+              "producto": {
+                "id": "toldo",
+                "nombre": "Toldo"
+              },
+              "cantidad": 3,
+              "precio": 520
+            }
+          ],
+          "total": 1560,
+          "estado": "rechazado"
+        }
+      ]
     },
     {
+      "id": "1748856453164",
+      "numero": "20250638",
+      "version": 1,
+      "fecha": "2025-01-20T11:15:00.000Z",
       "clienteId": "2",
       "cliente": "María Martínez Sánchez",
       "datosCliente": {
@@ -246,33 +281,67 @@
       },
       "lineas": [
         {
-          "id": "1748767526534",
+          "id": "1748856453165",
+          "tipo": "personalizado",
+          "producto": {
+            "id": "personalizado",
+            "nombre": "Mosquitera enrollable"
+          },
+          "referencia": "MOSQ-001",
+          "caracteristicasPermanentes": {},
+          "caracteristicasSeleccionables": {},
+          "cantidad": 4,
+          "precio": 125
+        },
+        {
+          "id": "1748856453166",
           "tipo": "existente",
           "producto": {
             "id": "ventana",
             "nombre": "Ventana"
           },
-          "referencia": "",
-          "caracteristicas": {
-            "marca": "Cortizo",
-            "perfileria": "RPT",
-            "serie": "Serie 60",
-            "color": "Blanco",
-            "persiana": "Sin persiana",
-            "ancho": 300,
-            "alto": 300,
-            "apertura": "Practicable"
+          "referencia": "V-COCINA",
+          "caracteristicasPermanentes": {
+            "marca": {
+              "valor": "Technal",
+              "activada": true
+            },
+            "serie": {
+              "valor": "Serie 60",
+              "activada": true
+            },
+            "ancho": {
+              "valor": 800,
+              "activada": true
+            },
+            "alto": {
+              "valor": 600,
+              "activada": true
+            }
+          },
+          "caracteristicasSeleccionables": {
+            "persiana": {
+              "valor": "Sin persiana",
+              "precio": 0,
+              "activada": false
+            },
+            "apertura": {
+              "valor": "Corredera",
+              "precio": 80,
+              "activada": true
+            },
+            "cristal": {
+              "valor": "Doble 4/16/4",
+              "precio": 85,
+              "activada": true
+            }
           },
           "cantidad": 1,
-          "precio": 55
+          "precio": 465
         }
       ],
-      "total": 55,
-      "estado": "aceptado",
-      "numero": "20250639",
-      "id": "1748767528633",
-      "version": 1,
-      "fecha": "2025-06-01T08:45:28.633Z",
+      "total": 965,
+      "estado": "borrador",
       "versiones": []
     }
   ]
